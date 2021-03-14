@@ -1,0 +1,16 @@
+{
+  "ground": {
+    "id": "ground",
+    "spritesheet_path": "data/graphics/ground.png",
+    "resize": true,
+    "autotile_config": "data/autotile_configs/ground_autotile_config.json",
+    "scale": 2
+  },
+  "decoration": {
+    "id": "decoration",
+    "spritesheet_path": "data/graphics/decoration.png",
+    "resize": true,
+    "autotile_config": null,
+    "scale": 2
+  }
+}
