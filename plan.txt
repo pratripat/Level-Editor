@@ -1,0 +1,88 @@
+Selection panel:
+
+* Functions:
+- Load => Load all the groups from particular folder
+- Render => Render groups and background
+- Update => Update all of the groups and buttons
+
+* Parameters:
+- Group list
+- Current group
+- Buttons for shifting between groups
+======================================================
+Group:
+
+* Functions:
+- Load => Load all the images from the sprite sheet file
+- Render => Render all images
+- Update => Update all the images
+
+* Parameters:
+- Images list
+- Current image
+======================================================
+Image(selection panel):
+
+* Functions:
+- Render => Render itself in given position
+- Update => Check for selection
+
+* Parameters:
+- Image
+======================================================
+World:
+
+* Functions:
+- Render => Render all the layers and rectangle
+- Update => Update all the layers and rectangle
+- Add layer => Add layer appropriately (up or down)
+- Add image => Ask layer to add image
+- Undo => Ask the current layer to undo
+- Redo => Ask the current layer to redo
+- Fill => Ask the current layer to fill
+- Autotile => Ask the current layer to autotile
+- Delete => Ask the current layer to delete
+- Save => Saves all the images from all layers into json
+
+* Parameters:
+- Layer list
+- Current layer
+- Rectangle
+=====================================================
+Layer:
+
+* Functions:
+- Render => Render images
+- Add image => Add image to list
+- Undo => Undo recent things
+- Redo => Redo undoed things
+- Fill => Fill images
+- Autotile => Autotile images
+- Delete => Delete images in particular location
+
+* Parameters:
+- Image list
+- Layer number
+=====================================================
+Rectangle:
+
+* Functions:
+- Get image => Returns images within rectangle
+- Add start point => Add start point of rectangle
+- Add end point => Add end point of rectangle
+
+* Parameters:
+- start position
+- end position
+- in creation (bool)
+=====================================================
+Image(world):
+
+* Functions:
+- Render => Render self image in particular location
+- Fill => Fill self image in neighbors and ask neighbors to do the same
+- Autotile => Get neighbors, and set self image according to autotile config
+
+* Parameters:
+- position => (i, j)
+- image
