@@ -1,2 +1,2 @@
 # Level-Editor
-Updating the level editor...
+Updated the level editor to load multiple spritesheets into a group.
