@@ -22,6 +22,9 @@ class Editor:
 
         return 1/fps
 
+    def load(self, filename):
+        self.world.load(filename)
+
     def render(self, mouse_position):
         self.screen.fill((13,19,42))
 
@@ -62,6 +65,8 @@ class Editor:
             self.world.undo()
         if ctrl_key and keys[pygame.K_t]:
             self.world.autotile(self.selection_panel)
+        if ctrl_key and keys[pygame.K_s]:
+            self.world.save()
 
         self.render(mouse_position)
 

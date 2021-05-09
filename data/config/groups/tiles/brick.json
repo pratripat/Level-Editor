@@ -1,8 +1,7 @@
 {
-  "id": "block",
+  "id": "brick",
   "filename": "data/graphics/spritesheet/tiles.png",
-  "indexes": [1],
-  "offset": [0,0],
+  "indexes": [0],
   "resize": true,
   "scale": 3,
   "autotile_config": null
