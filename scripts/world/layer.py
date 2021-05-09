@@ -54,7 +54,16 @@ class Layer:
         if selection:
             images = []
             for image in self.images:
-                img = Image(self.editor, image.j, image.i, image.position[0], image.position[1], image.offset, data={'id': image.id, 'image': image.image, 'index': image.index})
+                data = {
+                    'id': image.id,
+                    'filepath': image.filepath,
+                    'group_name': image.group_name,
+                    'image': image.image,
+                    'index': image.index,
+                    'scale':image.scale
+                }
+
+                img = Image(self.editor, image.j, image.i, image.position[0], image.position[1], image.offset, data=data)
                 img.image = image.image
                 img.id = image.id
                 img.autotile_config = image.autotile_config

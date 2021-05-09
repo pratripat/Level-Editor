@@ -5,6 +5,7 @@ def load_images_from_spritesheet(filename):
     try:
         spritesheet = pygame.image.load(filename).convert()
     except Exception as e:
+        print(f'FILENAME: {filename}')
         print(f'LOAD IMAGES FROM SPRITESHEET ERROR: {e}')
         return []
 

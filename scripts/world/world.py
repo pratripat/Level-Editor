@@ -2,7 +2,7 @@ from ..funcs import *
 from .layer import Layer
 from .image import Image
 from .rectangle import Rectangle
-import json
+import json, os
 
 class World:
     def __init__(self, editor):
@@ -107,55 +107,83 @@ class World:
     def save(self):
         #Saves the data (images) into a json file
         data = {}
-        i = 0
 
         for layer in self.layers:
             for image in layer.images:
-                data[str(i)] = {
-                    'id': image.id,
-                    'position': [image.j, image.i],
-                    'index': image.index,
-                    'layer': layer.n,
-                    'dimensions': image.image.get_size()
-                }
-                i += 1
+                data[f'{image.j};{image.i}:{layer.n}'] = [
+                    image.id, image.filepath, image.index, image.scale
+                ]
 
         file = open('data/saved.json', 'w')
         data = json.dump(data, file)
         file.close()
 
     def load(self, filename):
+        #Opens the file
         data = json.load(open(filename, 'r'))
 
-        for i in data:
-            entity = data[i]
-            layer = entity['layer']
-            id = entity['id']
-            index = entity['index']
-            dimensions = entity['dimensions']
-            position = entity['position']
+        for position, list in data.items():
+            pos, layer = position.split(':')
+            id, filepath, index, scale = list
 
-            layer = self.get_layer(layer)
-            path = f'data/graphics/spritesheet/{id}.png'
+            #Gets the specific layer for the image
+            layer = self.get_layer(int(layer))
+            path = f'data/graphics/spritesheet/{filepath}.png'
 
+            #Loads image and offset
             try:
-                image = load_images_from_spritesheet(path)[index]
-
-                offset = self.load_image_offset(id, dimensions, index, image)
+                image = load_images_from_spritesheet(path)[int(index)]
+                dimensions = [image.get_width()*int(scale), image.get_height()*int(scale)]
+                offset = self.load_image_offset(id, dimensions, int(index), image)
 
                 image = pygame.transform.scale(image, dimensions)
-            except:
+
+            except Exception as e:
+                print('WORLD LOADING ERROR: ', e)
                 image = pygame.image.load(path).convert()
+                dimensions = [image.get_width()*int(scale), image.get_height()*int(scale)]
                 image.set_colorkey((0,0,0))
 
-                offset = self.load_image_offset(id, dimensions, index, image)
+                offset = self.load_image_offset(id, dimensions, int(index), image)
 
                 image = pygame.transform.scale(image, dimensions)
 
-            image_object = Image(*position, position[0]*res, position[1]*res, offset, {'image':image, 'index':index, 'id':id})
+            #Loads the group name
+            FILEPATH = 'data/config/groups'
+            for group in os.listdir(FILEPATH):
+                for file in os.listdir(FILEPATH+'/'+group):
+                    data = json.load(open(FILEPATH+'/'+group+'/'+file, 'r'))
+                    data_filepath = data['filename'].split('.')[0].split('/')[-1]
+
+                    if data['id'] == id and data_filepath == filepath:
+                        group_name = group
+                        break
+                else:
+                    continue
+                break
+
+            #Converts the position from string ('x;y') to int
+            x, y = pos.split(';')
+            x, y = int(float(x)), int(float(y))
+
+            data = {
+                'id': id,
+                'filepath': filepath,
+                'group_name': group_name,
+                'image': image,
+                'index': index,
+                'scale': scale,
+                'autotile_config_path': f'data/config/autotile/{id}_autotile_config.json'
+            }
+
+            #Loads the image object
+            image_object = Image(self.editor, x, y, x*self.editor.res, y*self.editor.res, offset, data=data)
+
+            #Adds the image to the layer
             layer.images.append(image_object)
 
     def load_image_offset(self, id, dimensions, index, image):
+        #Loads offset
         try:
             offset_data = json.load(open(f'data/configs/offsets/{id}_offset.json', 'r'))
             offset = offset_data[str(index)]
@@ -167,10 +195,12 @@ class World:
         return offset
 
     def get_layer(self, n):
+        #Returns layer 'n' if already assigned
         for layer in self.layers:
             if layer.n == n:
                 return layer
 
+        #Else creates a new layer and assigns it 'n'
         layer = Layer(self.editor, n)
         self.layers.append(layer)
         return layer

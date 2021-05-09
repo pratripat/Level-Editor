@@ -1,5 +1,5 @@
 from ..funcs import load_images_from_spritesheet
-import json
+import pygame, json
 
 class Image:
     def __init__(self, editor, j, i, x, y, offset, data=None, selection=None):
@@ -11,17 +11,25 @@ class Image:
 
         if data:
             self.id = data['id']
+            self.filepath = data['filepath']
+            self.group_name = data['group_name']
             self.image = data['image']
             self.index = data['index']
+            self.scale = data['scale']
         elif selection:
             self.id = selection.id
-            self.group_id = selection.group_id
+            self.filepath = selection.filepath
             self.group_name = selection.group_name
             self.image = selection.image
             self.index = selection.index
+            self.scale = selection.scale
 
         try:
-            self.autotile_config = json.load(open(selection.autotile_config_path, 'r'))
+            if selection:
+                self.autotile_config = json.load(open(selection.autotile_config_path, 'r'))
+                return
+
+            self.autotile_config = json.load(open(data['autotile_config_path'], 'r'))
         except:
             self.autotile_config = None
 
@@ -64,24 +72,26 @@ class Image:
             try:
                 key = str(int(binary, 2))
                 index = self.autotile_config[key]
-                self.image = selector_panel_images[index].image
+
+                images = load_images_from_spritesheet(f'data/graphics/spritesheet/{self.filepath}.png')
+                image = images[index]
+
+                self.image = pygame.transform.scale(image, (image.get_width()*self.scale, image.get_height()*self.scale))
                 self.index = index
 
                 try:
                     offset_data = json.load(open(f'data/configs/offsets/{self.id}_offset.json', 'r'))
                     offset = offset_data[str(self.index)]
-                    spritesheet_path = f'data/graphics/spritesheet/{self.group_id}.png'
-                    image = load_images_from_spritesheet(spritesheet_path)[self.index]
-                    offset[0] *= self.image.get_width()/image.get_width()
-                    offset[1] *= self.image.get_height()/image.get_height()
+                    offset[0] *= self.scale
+                    offset[1] *= self.scale
                 except Exception as e:
                     # print(e)
                     offset = [0,0]
 
                 self.offset = offset
 
-            except:
-                pass
+            except Exception as e:
+                print('AUTOTILE ERROR: ', e)
 
     def get_neighbors(self, images):
         #Returns neighbor images
