@@ -1,9 +1,6 @@
-from scripts.editor import Editor
+from scripts.level_editor import Level_Editor
 
 def main():
-    #Runs the editor
-    editor = Editor()
-    editor.load('data/saved.json')
-    editor.main_loop()
+    Level_Editor().run()
 
 main()
