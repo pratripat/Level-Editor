@@ -107,7 +107,7 @@ class Menu:
                 self.selected_object = object
 
         if self.selected_object:
-            self.selected_object.check_for_inputs(key_inputs['keys_pressed'])
+            self.selected_object.check_for_inputs(key_inputs)
 
         if len(self.events['radiobutton_click']) > 0:
             checked_radiobutton_id = self.events['radiobutton_click'][-1]
