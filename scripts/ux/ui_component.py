@@ -78,7 +78,7 @@ class UI_Component:
         if self.is_clicked(scroll, mouse_inputs):
             self.menu.send_event(f'{self.object_id}_click', self.id)
 
-    def check_for_inputs(self, keys=[]):
+    def check_for_inputs(self, key_inputs={'keys_pressed': [], 'keys_held': []}):
         pass
 
     def is_mouse_hovering(self, scroll=[0,0]):
