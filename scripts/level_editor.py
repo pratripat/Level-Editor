@@ -74,6 +74,7 @@ class Level_Editor:
                     button = self.tilemaps_menu.add_button((25+offset[0], 80+offset[1]), (25+image.get_width()+offset[0], 80+image.get_height()+offset[1]))
                     button.set_image_scale(1)
                     button.set_image(filepath)
+                    self.workspace.add_tilemap(button)
                     self.menu_manager.menus.remove(self.pop_up_menu)
                     self.pop_up_menu = None
                     print('lol', button)
