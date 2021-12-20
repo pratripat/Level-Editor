@@ -47,7 +47,7 @@ def load_images_from_spritesheet(filename):
 class Font:
     def __init__(self, filename):
         self.filename = filename
-        self.characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@!-*.'
+        self.characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@!-*._'
         self.space_width = 10
         self.load_characters()
 
