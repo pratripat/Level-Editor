@@ -243,6 +243,11 @@ class Menu:
 
         return None
 
+    def get_checked_radiobutton(self):
+        for radiobutton in self.radiobuttons:
+            if radiobutton.checked:
+                return radiobutton
+
     def is_mouse_hovering(self, scroll=[0,0]):
         scroll = self.get_scroll(scroll)
 
