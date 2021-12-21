@@ -2,8 +2,8 @@ import pygame
 from .layer import Layer
 
 class Workspace:
-    TILE_SIZE = 32
-    CHUNK_SIZE = 12
+    TILE_RES = 64
+    CHUNK_SIZE = 16
 
     def __init__(self, level_editor):
         self.level_editor = level_editor
@@ -20,10 +20,9 @@ class Workspace:
         if self.current_tile:
             self.level_editor.screen.blit(self.current_tile.image, (210, 10))
 
-            if self.level_editor.input_system.mouse_states['left_held']:
-                self.current_layer.add_tile(self.current_tile)
-
     def update(self):
+        self.handle_inputs()
+
         if self.level_editor.layers_menu.selected_object and self.level_editor.layers_menu.selected_object.object_id == 'textbox' and self.level_editor.layers_menu.selected_object.id != 'layers_title':
             self.current_layer_index = self.level_editor.layers_menu.textboxes.index(self.level_editor.layers_menu.selected_object)-1
             self.current_layer.id = self.level_editor.layers_menu.selected_object.text
@@ -36,6 +35,20 @@ class Workspace:
             return
 
         self.current_layer.update()
+
+    def handle_inputs(self):
+        if self.current_tile:
+            if self.level_editor.input_system.mouse_states['left_held']:
+                self.current_layer.add_tile(self.current_tile)
+
+        if pygame.K_w in self.level_editor.input_system.keys_held:
+            self.scroll[1] -= 5 * self.level_editor.fps * self.level_editor.dt
+        if pygame.K_a in self.level_editor.input_system.keys_held:
+            self.scroll[0] -= 5 * self.level_editor.fps * self.level_editor.dt
+        if pygame.K_s in self.level_editor.input_system.keys_held:
+            self.scroll[1] += 5 * self.level_editor.fps * self.level_editor.dt
+        if pygame.K_d in self.level_editor.input_system.keys_held:
+            self.scroll[0] += 5 * self.level_editor.fps * self.level_editor.dt
 
     def add_layer(self):
         index = len(self.layers.values())

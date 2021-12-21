@@ -1,8 +1,10 @@
+import pygame
 from .tile import Tile
 
 class Chunk:
-    def __init__(self, position):
+    def __init__(self, position, res):
         self.position = position
+        self.size = [res, res]
         self.tiles = []
 
     def render(self, screen, scroll=[0,0]):
@@ -26,3 +28,7 @@ class Chunk:
         for tile in self.tiles:
             if tile.position == position:
                 return tile
+
+    @property
+    def rect(self):
+        return pygame.Rect(*self.position, *self.size)
