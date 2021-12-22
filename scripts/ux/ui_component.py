@@ -121,6 +121,9 @@ class UI_Component:
         self.image_filepath = filepath
         self.original_image = image
 
+    def set_image_with_surface(self, surface):
+        self.original_image = surface    
+
     def set_image_scale(self, scale):
         self.image_scale = scale
 
