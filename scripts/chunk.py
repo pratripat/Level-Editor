@@ -15,8 +15,8 @@ class Chunk:
         for entity in self.tiles:
             entity.update()
 
-    def add_tile(self, image, position, index):
-        tile = Tile(self, image, position, index)
+    def add_tile(self, image, position, tile_index, filepath, spritesheet_index):
+        tile = Tile(self, image, position, tile_index, filepath, spritesheet_index)
         self.tiles.append(tile)
 
     def remove_tile(self, position):

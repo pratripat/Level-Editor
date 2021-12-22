@@ -16,12 +16,12 @@ class Layer:
         for chunk in self.visible_chunks:
             chunk.update()
 
-    def add_tile(self, tile):
+    def add_tile(self, tile, filepath, spritesheet_index):
         position = [self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]]
         tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
         chunk = self.get_chunk(position)
         chunk.remove_tile(tile_position)
-        chunk.add_tile(tile.image, tile_position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.current_tile_index)
+        chunk.add_tile(tile.image, tile_position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.current_tile_index, filepath, spritesheet_index)
 
     def get_chunk(self, position):
         position = ((position[0]//(self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES))*self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES, (position[1]//(self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES))*self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES)
