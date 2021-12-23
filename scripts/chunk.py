@@ -28,7 +28,7 @@ class Chunk:
         for tile in self.tiles:
             if tile.position == position:
                 return tile
-
+                
     @property
     def rect(self):
         return pygame.Rect(*self.position, *self.size)

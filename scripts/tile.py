@@ -11,4 +11,4 @@ class Tile:
         screen.blit(self.image, (self.position[0]-scroll[0], self.position[1]-scroll[1]))
 
     def update(self):
-        pass
+        pass    
