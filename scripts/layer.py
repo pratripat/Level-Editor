@@ -16,12 +16,46 @@ class Layer:
         for chunk in self.visible_chunks:
             chunk.update()
 
+    def fill(self, position, depth=950):
+        if depth == 0:
+            return
+
+        position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+        for dir in [(0,-1), (1,0), (0,1), (-1,0)]:
+            new_position = [position[0]+self.level_editor.workspace.TILE_RES*dir[0], position[1]+self.level_editor.workspace.TILE_RES*dir[1]]
+            chunk = self.get_chunk(new_position)
+
+            if chunk in self.visible_chunks:
+                neighbor = chunk.get_tile(new_position)
+
+                #If the neighbor is not yet defined, the neighbor becomes a tile object and is put into the tiles list
+                if not neighbor:
+                    tile, filepath, spritesheet_index = self.level_editor.workspace.current_tile
+                    chunk.add_tile(tile.image, new_position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.current_tile_index, filepath, spritesheet_index)
+
+                    self.fill(new_position, depth-1)
+
+    def get_image_with_position(self, position, images):
+        chunk = self.get_chunk(position)
+        if chunk:
+            return chunk.get_tile(position)
+
     def add_tile(self, tile, filepath, spritesheet_index):
         position = [self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]]
         tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
         chunk = self.get_chunk(position)
         chunk.remove_tile(tile_position)
         chunk.add_tile(tile.image, tile_position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.current_tile_index, filepath, spritesheet_index)
+
+    def remove_tile(self, position):
+        tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+        chunk = self.get_chunk(tile_position)
+        chunk.remove_tile(tile_position)
+
+    def remove_tiles(self, tiles):
+        for tile in tiles:
+            chunk = tile.chunk
+            chunk.tiles.remove(tile)
 
     def get_chunk(self, position):
         position = ((position[0]//(self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES))*self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES, (position[1]//(self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES))*self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES)
@@ -31,6 +65,17 @@ class Layer:
             chunk = Chunk(position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES)
             self.chunks[position] = chunk
             return chunk
+
+    def get_tiles_within_rect(self, rect):
+        chunks = [chunk for chunk in self.chunks.values() if chunk.rect.colliderect(rect)]
+        tiles = []
+
+        for tile in [tile for chunk in chunks for tile in chunk.tiles]:
+            if tile not in tiles:
+                if tile.position[0] > rect[0] and tile.position[1] > rect[1] and tile.position[0]+self.level_editor.workspace.TILE_RES < rect[0]+rect[2] and tile.position[1]+self.level_editor.workspace.TILE_RES < rect[1]+rect[3]:
+                    tiles.append(tile)
+
+        return tiles
 
     @property
     def visible_chunks(self):
