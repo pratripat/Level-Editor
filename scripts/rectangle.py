@@ -32,7 +32,10 @@ class Rectangle:
         self.end_position[1] += self.level_editor.workspace.scroll[1]
 
         if self.end_position == self.start_position:
-            self.start_position = self.end_position = [None, None]
+            self.reset()
+
+    def reset(self):
+        self.start_position = self.end_position = [None, None]
 
     @property
     def formed(self):

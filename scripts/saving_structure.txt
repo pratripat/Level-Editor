@@ -1,0 +1,1 @@
+{layer index: [layer type, [{tile position: [tile id, tile filepath, tile spritesheet]}]]}

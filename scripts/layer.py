@@ -30,8 +30,8 @@ class Layer:
 
                 #If the neighbor is not yet defined, the neighbor becomes a tile object and is put into the tiles list
                 if not neighbor:
-                    tile, filepath, spritesheet_index = self.level_editor.workspace.current_tile
-                    chunk.add_tile(tile.image, new_position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.current_tile_index, filepath, spritesheet_index)
+                    tile, filepath, spritesheet_index = self.level_editor.workspace.current_tile_data
+                    chunk.add_tile(tile.image, self.level_editor.workspace.current_layer_index, new_position, filepath, spritesheet_index)
 
                     self.fill(new_position, depth-1)
 
@@ -45,7 +45,7 @@ class Layer:
         tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
         chunk = self.get_chunk(position)
         chunk.remove_tile(tile_position)
-        chunk.add_tile(tile.image, tile_position, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.current_tile_index, filepath, spritesheet_index)
+        chunk.add_tile(tile.image, self.level_editor.workspace.current_layer_index, tile_position, filepath, spritesheet_index)
 
     def remove_tile(self, position):
         tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
@@ -76,6 +76,12 @@ class Layer:
                     tiles.append(tile)
 
         return tiles
+
+    def get_data(self):
+        return [
+            self.id,
+            [tile.get_data() for chunk in self.chunks.values() for tile in chunk.tiles]
+        ]
 
     @property
     def visible_chunks(self):

@@ -15,8 +15,8 @@ class Chunk:
         for entity in self.tiles:
             entity.update()
 
-    def add_tile(self, image, position, tile_index, filepath, spritesheet_index):
-        tile = Tile(self, image, position, tile_index, filepath, spritesheet_index)
+    def add_tile(self, image, layer_index, position, filepath, spritesheet_index):
+        tile = Tile(self, image, layer_index, position, filepath, spritesheet_index)
         self.tiles.append(tile)
 
     def remove_tile(self, position):
@@ -28,7 +28,7 @@ class Chunk:
         for tile in self.tiles:
             if tile.position == position:
                 return tile
-                
+
     @property
     def rect(self):
         return pygame.Rect(*self.position, *self.size)
