@@ -122,6 +122,10 @@ class Level_Editor:
             self.update()
             self.render()
 
+    def ask_save_filename(self):
+        Tk().withdraw()
+        return filedialog.asksaveasfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
+
     @property
     def dt(self):
         return 1/(self.clock.get_fps()+0.000001)

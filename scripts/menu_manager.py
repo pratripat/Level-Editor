@@ -36,7 +36,6 @@ class Menu_Manager:
 
         for menu_id in self.menu_positions:
             if menu_id not in exception_ids:
-                print(menu_id, exception_ids)
                 self.load_menus(f'data/menus/{menu_id}.json')
 
         for menu in self.menus:
