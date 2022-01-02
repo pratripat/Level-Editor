@@ -1,4 +1,5 @@
 import pygame, json
+from .funcs import load_images_from_spritesheet
 from .layer import Layer
 from .rectangle import Rectangle
 
@@ -21,7 +22,11 @@ class Workspace:
             layer.render()
 
         if self.current_tile:
-            self.level_editor.screen.blit(self.current_tile.image, (210, 10))
+            image = self.current_tile.image
+            image = pygame.transform.scale(image, (int(image.get_width() * self.current_tile_data[3]), int(image.get_height() * self.current_tile_data[3])))
+            image.set_colorkey((0,0,0))
+            
+            self.level_editor.screen.blit(image, (210, 10))
             self.current_tile.highlight(self.level_editor.screen)
 
         self.rectangle.render()
@@ -30,6 +35,7 @@ class Workspace:
         self.handle_inputs()
 
         if self.level_editor.layers_manager.menu.selected_object and self.level_editor.layers_manager.menu.selected_object.object_id == 'textbox' and self.level_editor.layers_manager.menu.selected_object.id != 'layers_title':
+            #OHO
             self.current_layer_index = self.level_editor.layers_manager.menu.textboxes.index(self.level_editor.layers_manager.menu.selected_object)-1
             self.current_layer.id = self.level_editor.layers_manager.menu.selected_object.text
             self.level_editor.tilemaps_manager.menu.buttons = [tile[0] for tile in self.tiles[self.current_layer_index]] + [self.level_editor.tilemaps_manager.menu.get_object_with_id('add_tilemap')]
@@ -58,12 +64,13 @@ class Workspace:
             self.current_layer.remove_tiles(self.get_tiles_within_rect())
 
         if self.current_tile:
-            if self.level_editor.input_system.mouse_states['left_held'] and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LSHIFT, pygame.K_RSHIFT]]):
-                self.current_layer.remove_tile([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
-            elif self.level_editor.input_system.mouse_states['left_held'] and not any([menu.is_mouse_hovering() for menu in [self.level_editor.layers_manager.menu, self.level_editor.tilemaps_manager.menu]]):
+            if self.level_editor.input_system.mouse_states['left_held'] and not any([menu.is_mouse_hovering() for menu in [self.level_editor.layers_manager.menu, self.level_editor.tilemaps_manager.menu]]):
                 self.current_layer.add_tile(*self.current_tile_data)
             if self.level_editor.input_system.mouse_states['left'] and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
                 self.current_layer.fill([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
+
+        if self.level_editor.input_system.mouse_states['left_held'] and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LSHIFT, pygame.K_RSHIFT]]):
+            self.current_layer.remove_tile([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
 
         if not self.level_editor.layers_manager.menu.selected_object:
             if pygame.K_w in self.level_editor.input_system.keys_held:
@@ -75,6 +82,15 @@ class Workspace:
             if pygame.K_d in self.level_editor.input_system.keys_held:
                 self.scroll[0] += 10 * self.level_editor.fps * self.level_editor.dt
 
+        if pygame.K_t in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
+            tiles = self.get_tiles_within_rect()
+            self.current_layer.autotile(tiles)
+
+        if pygame.K_o in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
+            filename = self.level_editor.ask_open_filename()
+            if filename != ():
+                self.load(filename)
+
         if pygame.K_s in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             filename = self.level_editor.ask_save_filename()
             if filename != ():
@@ -82,20 +98,82 @@ class Workspace:
 
     def add_layer(self):
         index = len(self.layers.values())
-        self.layers[index] = Layer(f'layer_{index}', self.level_editor)
+        layer = Layer(f'layer_{index+1}', self.level_editor)
+        self.layers[index] = layer
 
         if index not in self.tiles:
             self.tiles[index] = []
 
-    def add_tilemap(self, tilemap, filepath, index):
-        self.tiles[self.current_layer_index].append([tilemap, filepath, index])
+        return index, layer
+
+    def add_tilemap(self, tilemap, filepath, spritesheet_index, image_scale):
+        self.tiles[self.current_layer_index].append([tilemap, filepath, spritesheet_index, image_scale])
 
     def get_tiles_within_rect(self):
         return self.current_layer.get_tiles_within_rect(self.rectangle.rect)
 
     def save(self, filename):
-        data = {i:layer.get_data() for i, layer in enumerate(self.layers.values())}
+        tilemaps = []
+        for tilemap_data in self.tiles.values():
+            for tile_data in tilemap_data:
+                if tile_data[1] not in tilemaps:
+                    tilemaps.append(tile_data[1])
+
+        data = {'layers': [layer.get_data(tilemaps) for layer in self.layers.values()], 'tilemaps': tilemaps}
         json.dump(data, open(filename, 'w'))
+
+    def load(self, filename):
+        #Loading layers
+        self.tiles.clear()
+        self.layers.clear()
+        self.level_editor.layers_manager.clear_textboxes()
+        self.level_editor.tilemaps_manager.clear_buttons()
+
+        data = json.load(open(filename, 'r'))
+
+        layers = data['layers']
+        tilemaps = data['tilemaps']
+        tilemap_types = {}
+
+        for layer_data in layers:
+            index, layer = self.add_layer()
+            layer.id = layer_data[0]
+            layer.load(layer_data[1], tilemaps)
+
+            textbox = self.level_editor.layers_manager.add_textbox()
+            textbox.text = layer_data[0]
+
+            tilemap_types[layer_data[0]] = {'images': [], 'spritesheets': []}
+            for tile_data in layer_data[1]:
+                if tile_data[3] == None:
+                    if [tilemaps[tile_data[2]], tile_data[4]] not in tilemap_types[layer_data[0]]['images']:
+                        tilemap_types[layer_data[0]]['images'].append([tilemaps[tile_data[2]], tile_data[4]])
+                else:
+                    if [tilemaps[tile_data[2]], tile_data[4]] not in tilemap_types[layer_data[0]]['spritesheets']:
+                        tilemap_types[layer_data[0]]['spritesheets'].append([tilemaps[tile_data[2]], tile_data[4]])
+
+        #Loading tilemaps
+        for i, tilemaps_data in enumerate(tilemap_types.values()):
+            self.level_editor.tilemaps_manager.clear_buttons()
+            self.current_layer_index = i
+            images = []
+
+            for tilemap in tilemaps_data['images']:
+                index = None
+                filepath = tilemap[0]
+                image_scale = tilemap[1]
+                image = pygame.image.load(filepath)
+                image.set_colorkey((0,0,0))
+                images = [image]
+
+            for tilemap in tilemaps_data['spritesheets']:
+                index = 0
+                filepath = tilemap[0]
+                image_scale = tilemap[1]
+                images = load_images_from_spritesheet(filepath)
+
+            if len(images):
+                self.level_editor.tilemaps_manager.add_buttons(images, index, filepath, image_scale)
 
     @property
     def current_layer(self):
