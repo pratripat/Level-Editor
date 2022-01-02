@@ -13,11 +13,11 @@ pygame.init()
 
 pygame.display.set_caption('Level Editor')
 
-INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Pawns-Gambit/data/graphics/spritesheet'
+INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data'
 
 class Level_Editor:
     def __init__(self):
-        self.window_size = (1400, 700)
+        self.window_size = (1200, 700)
         self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE+pygame.SCALED)
 
         self.input_system = Input()
@@ -32,8 +32,7 @@ class Level_Editor:
         self.pop_up_menu = None
 
         self.workspace.add_layer()
-        textbox = self.layers_manager.menu.add_textbox((25, 80+40*(len(self.layers_manager.menu.textboxes)-1)), (175, 100+40*(len(self.layers_manager.menu.textboxes)-1)))
-        textbox.text = f'layer_{len(self.workspace.layers.values())}'
+        self.layers_manager.add_textbox()
 
         self.clock = pygame.time.Clock()
         self.fps = 100
@@ -89,26 +88,7 @@ class Level_Editor:
                             images = load_images_from_spritesheet(filepath)
                             index = 0
 
-                        offset = self.tilemaps_manager.menu.position.copy()
-                        for i, image in enumerate(images):
-                            if index != None:
-                                index = i
-
-                            button = self.tilemaps_manager.menu.add_button((25+offset[0], 80+offset[1]), (25+(image.get_width()*image_scale)+offset[0], 80+(image.get_height()*image_scale)+offset[1]))
-                            button.set_image_scale(image_scale)
-                            button.set_image_with_surface(image)
-
-                            self.workspace.add_tilemap(button, filepath, index)
-
-                            offset[1] += image.get_height()*image_scale + 10
-
-                            if offset[1]+image.get_height()*image_scale*2 > self.tilemaps_manager.menu.get_object_with_id('add_tilemap').position[1]-self.tilemaps_manager.menu.get_object_with_id('add_tilemap').size[1]:
-                                offset[0] += max([button.size[0] for button in self.tilemaps_manager.menu.buttons if button.id != 'add_tilemap']) + 10
-                                offset[1] = self.tilemaps_manager.menu.position[1]
-
-                        self.menu_manager.menus.remove(self.pop_up_menu)
-                        self.pop_up_menu = None
-                        self.input_system.mouse_states['left_held'] = False
+                        self.tilemaps_manager.add_buttons(images, index, filepath, image_scale)
 
             if self.pop_up_menu and 'close_button' in self.pop_up_menu.events['button_click']:
                 self.menu_manager.menus.remove(self.pop_up_menu)
@@ -125,6 +105,10 @@ class Level_Editor:
     def ask_save_filename(self):
         Tk().withdraw()
         return filedialog.asksaveasfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
+
+    def ask_open_filename(self):
+        Tk().withdraw()
+        return filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
 
     @property
     def dt(self):
