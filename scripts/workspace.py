@@ -4,7 +4,7 @@ from .layer import Layer
 from .rectangle import Rectangle
 
 class Workspace:
-    TILE_RES = 64
+    TILE_RES = 48
     CHUNK_SIZE = 16
 
     def __init__(self, level_editor):
@@ -25,7 +25,7 @@ class Workspace:
             image = self.current_tile.image
             image = pygame.transform.scale(image, (int(image.get_width() * self.current_tile_data[3]), int(image.get_height() * self.current_tile_data[3])))
             image.set_colorkey((0,0,0))
-            
+
             self.level_editor.screen.blit(image, (210, 10))
             self.current_tile.highlight(self.level_editor.screen)
 
