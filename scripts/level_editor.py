@@ -15,6 +15,21 @@ pygame.display.set_caption('Level Editor')
 
 INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data'
 
+# import json
+#
+# data = json.load(open('data/autotile/8_bit_autotiling.json', 'r'))
+# new_data = {}
+#
+# for number in data.keys():
+#     index = data[number]
+#     for i in range(len(number)):
+#         if i % 2 != 0:
+#             if number[i] == '0':
+#                 number = number[:i] + '2' + number[i+1:]
+#     new_data[number] = index
+#
+# json.dump(new_data, open('data/autotile/8_bit_autotiling2.json', 'w'), indent=4)
+
 class Level_Editor:
     def __init__(self):
         self.window_size = (1200, 700)
