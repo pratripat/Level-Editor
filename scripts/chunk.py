@@ -21,7 +21,7 @@ class Chunk:
             image = load_images_from_spritesheet(filepath)[spritesheet_index]
         else:
             image = pygame.image.load(filepath)
-        
+
         self.add_tile(image, position, filepath, spritesheet_index, image_scale, id)
 
     def add_tile(self, image, position, filepath, spritesheet_index, image_scale, id=None):
