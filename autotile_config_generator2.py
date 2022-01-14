@@ -5,50 +5,6 @@ from tkinter import filedialog
 # INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data/autotile/8_bit_autotiling2.json'
 INITIAL_DIR = '/home/shubhendu/Documents/puttar/godot/Action RPG/World/'
 
-def load_images_from_spritesheet(filename):
-    #Tries to load the file
-    try:
-        spritesheet = pygame.image.load(filename).convert()
-    except Exception as e:
-        print('LOADING SPRITESHEET ERROR: ', e)
-        return []
-
-    rows = []
-    images = []
-
-    for y in range(spritesheet.get_height()):
-        pixil = spritesheet.get_at((0, y))
-        if pixil[2] == 255:
-            rows.append(y)
-
-    for row in rows:
-        for x in range(spritesheet.get_width()):
-            start_position = []
-            pixil = spritesheet.get_at((x, row))
-            if pixil[0] == 255 and pixil[1] == 255 and pixil[2] == 0:
-                start_position = [x+1, row+1]
-                width = height = 0
-
-                for rel_x in range(start_position[0], spritesheet.get_width()):
-                    pixil = spritesheet.get_at((rel_x, start_position[1]))
-                    if pixil[0] == 255 and pixil[1] == 0 and pixil[2] == 255:
-                        width = rel_x - start_position[0]
-                        break
-
-                for rel_y in range(start_position[1], spritesheet.get_height()):
-                    pixil = spritesheet.get_at((start_position[0], rel_y))
-                    if pixil[0] == 255 and pixil[1] == 0 and pixil[2] == 255:
-                        height = rel_y - start_position[1]
-                        break
-
-                image = pygame.Surface((width, height))
-                image.set_colorkey((0,0,0))
-                image.blit(spritesheet, (-start_position[0], -start_position[1]))
-
-                images.append(image)
-
-    return images
-
 def get_open_filename():
     Tk().withdraw()
     filename = filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.png', filetypes = [('PNG', '*.png')])
@@ -58,27 +14,6 @@ def get_save_filename():
     Tk().withdraw()
     filename = filedialog.asksaveasfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
     return filename
-
-def create_image(images):
-    width = sum([image.get_width() for image in images])
-    height = images[0].get_height()
-
-    for i in range(len(images)):
-        if (i+1) % 4 == 0:
-            height += images[i].get_height()
-
-    surface = pygame.Surface((width, height))
-
-    x = 0
-    y = 0
-    for i, image in enumerate(images):
-        surface.blit(image, (x, y))
-        x += image.get_width()
-        if (i+1) % 4 == 0:
-            x = 0
-            y += image.get_height()
-
-    return surface
 
 def add_tile_indicator(tile_indicators, position, tilesize, scale, scroll):
     original_tilesize_by_3 = original_tilesize/3
@@ -147,16 +82,16 @@ def save_data(tile_indicators, image, tilesize, scale):
                 tile_data[tile] = tile_data[tile][:i] + '1' + tile_data[tile][i+1:]
 
     new_data = {}
-
-    #Adds 2s
     for number in tile_data.values():
         position = list(tile_data.keys())[list(tile_data.values()).index(number)]
         index = position[0]+position[1]*original_image.get_width()//original_tilesize
 
-        for i in range(len(number)):
-            if i % 2 != 0:
-                if number[i] == '0':
-                    number = number[:i] + '2' + number[i+1:]
+        # # Adds 2s
+        # for i in range(len(number)):
+        #     if i % 2 != 0:
+        #         if number[i] == '0':
+        #             number = number[:i] + '2' + number[i+1:]
+        
         new_data[number] = [index]
 
     json.dump(new_data, open(filename, 'w'), indent=4)
@@ -170,9 +105,7 @@ screen = pygame.display.set_mode((1000, 700))
 pygame.display.set_caption('Autotile Config Generator')
 
 filename = get_open_filename()
-images = load_images_from_spritesheet(filename)
-print(images)
-original_image = create_image(images)
+original_image = pygame.image.load(filename)
 
 scroll = [0,0]
 scroll_vel = [0,0]
@@ -194,13 +127,13 @@ while True:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                scroll_vel[1] = -3
+                scroll_vel[1] = -1
             if event.key == pygame.K_s:
-                scroll_vel[1] = 3
+                scroll_vel[1] = 1
             if event.key == pygame.K_a:
-                scroll_vel[0] = -3
+                scroll_vel[0] = -1
             if event.key == pygame.K_d:
-                scroll_vel[0] = 3
+                scroll_vel[0] = 1
             if event.key == pygame.K_SPACE:
                 save_data(tile_indicators, image, tilesize, scale)
         if event.type == pygame.KEYUP:
@@ -240,6 +173,6 @@ while True:
     screen.blit(image, (-scroll[0], -scroll[1]))
     render_tile_indicators(screen, tile_indicators, tilesize, scale, scroll)
 
-    # render_lines(screen, tilesize, scale, scroll)
+    render_lines(screen, tilesize, scale, scroll)
 
     pygame.display.update()
