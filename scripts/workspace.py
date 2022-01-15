@@ -106,6 +106,21 @@ class Workspace:
 
         return index, layer
 
+    def remove_current_layer(self):
+        del self.layers[self.current_layer_index]
+
+        layers = {}
+        for index in self.layers.keys():
+            if index < self.current_layer_index:
+                layers[index] = self.layers[index]
+            else:
+                layers[len(layers.values())] = self.layers[index]
+
+        self.current_layer_index -= 1
+        self.layers = layers
+
+        self.level_editor.layers_manager.arrange_layers()
+
     def add_tilemap(self, tilemap, filepath, spritesheet_index, image_scale):
         self.tiles[self.current_layer_index].append([tilemap, filepath, spritesheet_index, image_scale])
 

@@ -94,9 +94,9 @@ class Menu_Manager:
             elif self.menu_positions[menu.id]['position'][0] == 'left_edge':
                 menu.position[0] = 0
             if self.menu_positions[menu.id]['position'][1] == 'bottom_edge':
-                menu.position[0] = window_size[1]-menu.size[1]
+                menu.position[1] = window_size[1]-menu.size[1]
             elif self.menu_positions[menu.id]['position'][1] == 'top_edge':
-                menu.position[0] = 0
+                menu.position[1] = 0
             if self.menu_positions[menu.id]['position'][0] == 'center':
                 menu.position[0] = window_size[0]//2-menu.size[0]//2
             if self.menu_positions[menu.id]['position'][1] == 'center':
