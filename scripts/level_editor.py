@@ -5,6 +5,7 @@ from .input_system import Input
 from .menu_manager import Menu_Manager
 from .workspace import Workspace
 from .menus.layers_manager import Layers_Manager
+from .menus.layers_options_manager import Layers_Options_Manager
 from .menus.tilemaps_manager import Tilemaps_Manager
 
 import pygame
@@ -15,31 +16,17 @@ pygame.display.set_caption('Level Editor')
 
 INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data'
 
-# import json
-#
-# data = json.load(open('data/autotile/8_bit_autotiling.json', 'r'))
-# new_data = {}
-#
-# for number in data.keys():
-#     index = data[number]
-#     for i in range(len(number)):
-#         if i % 2 != 0:
-#             if number[i] == '0':
-#                 number = number[:i] + '2' + number[i+1:]
-#     new_data[number] = index
-#
-# json.dump(new_data, open('data/autotile/8_bit_autotiling2.json', 'w'), indent=4)
-
 class Level_Editor:
     def __init__(self):
         self.window_size = (1200, 700)
-        self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE+pygame.SCALED)
+        self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
 
         self.input_system = Input()
         self.menu_manager = Menu_Manager()
         self.menu_manager.load_menu_positions(exception_ids=['load_tilemap_menu'])
 
         self.layers_manager = Layers_Manager(self)
+        self.layers_options_manager = Layers_Options_Manager(self)
         self.tilemaps_manager = Tilemaps_Manager(self)
 
         self.workspace = Workspace(self)
@@ -61,6 +48,8 @@ class Level_Editor:
         pygame.display.update()
 
     def update(self):
+        self.window_size = self.screen.get_size()
+
         self.clock.tick(self.fps)
 
         self.input_system.update()
@@ -78,6 +67,7 @@ class Level_Editor:
 
     def update_inputs(self):
         self.layers_manager.update_inputs()
+        self.layers_options_manager.update_inputs()
         self.tilemaps_manager.update_inputs()
 
         if self.pop_up_menu:

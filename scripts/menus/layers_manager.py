@@ -17,3 +17,19 @@ class Layers_Manager:
         for textbox in self.menu.textboxes[:]:
             if textbox.id != 'layers_title':
                 self.menu.textboxes.remove(textbox)
+
+    def get_current_layer(self):
+        return self.menu.textboxes[self.level_editor.workspace.current_layer_index+1]
+
+    def remove_layer(self, layer):
+        if len(self.level_editor.workspace.layers) == 1:
+            return
+
+        if layer in self.menu.textboxes:
+            self.menu.textboxes.remove(layer)
+            self.level_editor.workspace.remove_current_layer()
+
+    def arrange_layers(self):
+        for layer_index in self.level_editor.workspace.layers.keys():
+            textbox = self.menu.textboxes[layer_index+1]
+            textbox.offset = [25-self.menu.position[0], 80+40*layer_index-self.menu.position[1]]
