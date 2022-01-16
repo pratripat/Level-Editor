@@ -7,3 +7,9 @@ class Layers_Options_Manager:
         if 'layer_delete' in self.menu.events['button_click']:
             current_layer = self.level_editor.layers_manager.get_current_layer()
             self.level_editor.layers_manager.remove_layer(current_layer)
+
+        if 'layer_up' in self.menu.events['button_click']:
+            self.level_editor.workspace.move_current_layer_up()
+
+        if 'layer_down' in self.menu.events['button_click']:
+            self.level_editor.workspace.move_current_layer_down()

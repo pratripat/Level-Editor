@@ -4,7 +4,7 @@ class Layers_Manager:
         self.menu = self.level_editor.menu_manager.get_menu_with_id('layers_menu')
 
     def update_inputs(self):
-        if self.menu.get_object_with_id('add_layer').id in self.menu.events['button_click']:
+        if 'add_layer' in self.menu.events['button_click']:
             self.level_editor.workspace.add_layer()
             self.add_textbox()
 
@@ -33,3 +33,8 @@ class Layers_Manager:
         for layer_index in self.level_editor.workspace.layers.keys():
             textbox = self.menu.textboxes[layer_index+1]
             textbox.offset = [25-self.menu.position[0], 80+40*layer_index-self.menu.position[1]]
+
+    def reorder_layers(self):
+        for layer_index in self.level_editor.workspace.layers.keys():
+            textbox = self.menu.textboxes[layer_index+1]
+            textbox.text = self.level_editor.workspace.layers[layer_index].id

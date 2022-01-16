@@ -44,8 +44,7 @@ class Layer:
         tiles = [tile for chunk in chunks for tile in chunk.tiles]
 
         for tile in autotile_tiles:
-            config_filepath = 'data/autotile/8_bit_autotiling.json'
-            tile.autotile(config_filepath, tiles, self.level_editor.workspace.TILE_RES, True)
+            tile.autotile(self.level_editor.workspace.autotile_filename, tiles, self.level_editor.workspace.TILE_RES, True)
 
     def get_image_with_position(self, position, images):
         chunk = self.get_chunk(position)
