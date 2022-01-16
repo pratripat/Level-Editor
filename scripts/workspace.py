@@ -66,7 +66,7 @@ class Workspace:
             self.current_layer.remove_tiles(self.get_tiles_within_rect())
 
         if self.current_tile:
-            if self.level_editor.input_system.mouse_states['left_held'] and not any([menu.is_mouse_hovering() for menu in [self.level_editor.layers_manager.menu, self.level_editor.tilemaps_manager.menu]]):
+            if self.level_editor.input_system.mouse_states['left_held'] and not any([menu.is_mouse_hovering() for menu in self.level_editor.menu_manager.menus]):
                 self.current_layer.add_tile(*self.current_tile_data)
             if self.level_editor.input_system.mouse_states['left'] and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
                 self.current_layer.fill([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
@@ -87,6 +87,12 @@ class Workspace:
         if pygame.K_t in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             tiles = self.get_tiles_within_rect()
             self.current_layer.autotile(tiles)
+
+        if pygame.K_z in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
+            self.current_layer.undo()
+
+        if pygame.K_y in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
+            self.current_layer.redo()
 
         if pygame.K_o in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             filename = self.level_editor.ask_open_filename()
@@ -188,13 +194,7 @@ class Workspace:
         return self.current_layer.get_tiles_within_rect(self.rectangle.rect)
 
     def save(self, filename):
-        tilemaps = []
-        for tilemap_data in self.tiles.values():
-            for tile_data in tilemap_data:
-                if tile_data[1] not in tilemaps:
-                    tilemaps.append(tile_data[1])
-
-        data = {'layers': [layer.get_data(tilemaps) for layer in self.layers.values()], 'tilemaps': tilemaps}
+        data = {'layers': [layer.get_data(self.level_editor.tilemaps_manager.tilemaps) for layer in self.layers.values()], 'tilemaps': self.level_editor.tilemaps_manager.tilemaps}
         json.dump(data, open(filename, 'w'))
 
     def load(self, filename):
