@@ -17,6 +17,8 @@ class Workspace:
 
         self.rectangle = Rectangle(self.level_editor)
 
+        self.autotile_filename = 'data/autotile/8_bit_autotiling.json'
+
     def render(self):
         for layer in self.layers.values():
             layer.render()
@@ -38,7 +40,7 @@ class Workspace:
             #OHO
             self.current_layer_index = self.level_editor.layers_manager.menu.textboxes.index(self.level_editor.layers_manager.menu.selected_object)-1
             self.current_layer.id = self.level_editor.layers_manager.menu.selected_object.text
-            self.level_editor.tilemaps_manager.menu.buttons = [tile[0] for tile in self.tiles[self.current_layer_index]] + [self.level_editor.tilemaps_manager.menu.get_object_with_id('add_tilemap')]
+            self.level_editor.tilemaps_manager.menu.buttons = [tile[0] for tile in self.tiles[self.current_layer]] + [self.level_editor.tilemaps_manager.menu.get_object_with_id('add_tilemap')]
             self.current_tile = None
 
         if self.level_editor.tilemaps_manager.menu.selected_object and self.level_editor.tilemaps_manager.menu.selected_object.object_id == 'button' and self.level_editor.tilemaps_manager.menu.selected_object.id != 'add_tilemap':
@@ -96,17 +98,25 @@ class Workspace:
             if filename != ():
                 self.save(filename)
 
+        if pygame.K_t in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]) and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LSHIFT, pygame.K_RSHIFT]]):
+            filename = self.level_editor.ask_open_filename()
+            if filename != ():
+                self.autotile_filename = filename
+                print('NEW AUTOTILE FILE: ', self.autotile_filename)
+
     def add_layer(self):
         index = len(self.layers.values())
         layer = Layer(f'layer_{index+1}', self.level_editor)
         self.layers[index] = layer
 
-        if index not in self.tiles:
-            self.tiles[index] = []
+        if layer not in self.tiles:
+            self.tiles[layer] = []
 
         return index, layer
 
     def remove_current_layer(self):
+        current_layer = self.layers[self.current_layer_index]
+        del self.tiles[current_layer]
         del self.layers[self.current_layer_index]
 
         layers = {}
@@ -119,10 +129,60 @@ class Workspace:
         self.current_layer_index -= 1
         self.layers = layers
 
+        if self.current_layer_index < 0:
+            self.current_layer_index = list(self.layers.keys())[0]
+
         self.level_editor.layers_manager.arrange_layers()
+        self.level_editor.tilemaps_manager.menu.buttons = [tile[0] for tile in self.tiles[self.current_layer]] + [self.level_editor.tilemaps_manager.menu.get_object_with_id('add_tilemap')]
+
+    def move_current_layer_up(self):
+        if len(self.layers) == 1:
+            return
+
+        target_layer_index = self.current_layer_index - 1
+        if target_layer_index < 0:
+            target_layer_index = list(self.layers.keys())[-1]
+
+        current_layer = self.layers[self.current_layer_index]
+        del self.layers[self.current_layer_index]
+
+        layers = list(self.layers.values())
+        layers = layers[:target_layer_index] + [current_layer] + layers[target_layer_index:]
+        new_layers = {}
+
+        for i, layer in enumerate(layers):
+            new_layers[i] = layer
+
+        self.layers = new_layers
+        self.current_layer_index = target_layer_index
+
+        self.level_editor.layers_manager.reorder_layers()
+
+    def move_current_layer_down(self):
+        if len(self.layers) == 1:
+            return
+
+        target_layer_index = self.current_layer_index + 1
+        if target_layer_index > len(self.layers)-1:
+            target_layer_index = list(self.layers.keys())[0]
+
+        current_layer = self.layers[self.current_layer_index]
+        del self.layers[self.current_layer_index]
+
+        layers = list(self.layers.values())
+        layers = layers[:target_layer_index] + [current_layer] + layers[target_layer_index:]
+        new_layers = {}
+
+        for i, layer in enumerate(layers):
+            new_layers[i] = layer
+
+        self.layers = new_layers
+        self.current_layer_index = target_layer_index
+
+        self.level_editor.layers_manager.reorder_layers()
 
     def add_tilemap(self, tilemap, filepath, spritesheet_index, image_scale):
-        self.tiles[self.current_layer_index].append([tilemap, filepath, spritesheet_index, image_scale])
+        self.tiles[self.current_layer].append([tilemap, filepath, spritesheet_index, image_scale])
 
     def get_tiles_within_rect(self):
         return self.current_layer.get_tiles_within_rect(self.rectangle.rect)
@@ -197,7 +257,7 @@ class Workspace:
     @property
     def current_tile_data(self):
         try:
-            for tile_data in self.tiles[self.current_layer_index]:
+            for tile_data in self.tiles[self.current_layer]:
                 if tile_data[0] == self.current_tile:
                     return tile_data
         except:
