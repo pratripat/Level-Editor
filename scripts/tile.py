@@ -32,31 +32,11 @@ class Tile:
                     return '1'
             return '0'
 
-        #Calculated the index of spritesheet using the config and binary
-        # def get_tile_index(key, binary, config):
-        #     if binary in config.keys():
-        #         return random.choice(config[binary])
-        #
-        #     key_duplicate = key
-        #
-        #     # for i, number in enumerate(key):
-        #     #     if number == '2':
-        #     #         key_duplicate = key_duplicate[:i] + binary[i] + key_duplicate[i+1:]
-        #     for i, number in enumerate(binary):
-        #         if i % 2 == 0:
-        #             if number != key[i]:
-        #                 return None
-        #
-        #     # if key_duplicate == binary:
-        #     print(key, binary)
-        #     return random.choice(config[key])
-
-            # return None
-
         def get_tile_index(config, binary):
             if binary in config.keys():
                 return random.choice(config[binary])
 
+            #Checking the top right bottom left tiles
             keys = []
             for key in config.keys():
                 for i, number in enumerate(binary):
@@ -66,6 +46,7 @@ class Tile:
                 else:
                     keys.append(key)
 
+            #Checking the diagonal tiles
             for key in keys[:]:
                 for i, number in enumerate(key):
                     if i % 2 != 0:
@@ -74,6 +55,7 @@ class Tile:
                                 keys.remove(key)
                                 break
 
+            #Returning the indexes with the calculated key
             if len(keys):
                 key = keys[0]
                 return random.choice(config[key])
@@ -93,10 +75,6 @@ class Tile:
             binary += get_neighbor(tiles, direction)
 
         #Getting the index
-        # index = None
-        # for key in config.keys():
-        #     index = get_tile_index(key, binary, config)
-        #     if index != None: break
         index = get_tile_index(config, binary)
 
         #Trying to change the image with the calculated index and spritesheet

@@ -2,6 +2,7 @@ class Tilemaps_Manager:
     def __init__(self, level_editor):
         self.level_editor = level_editor
         self.menu = self.level_editor.menu_manager.get_menu_with_id('tilemaps_menu')
+        self.tilemaps = []
 
     def update_inputs(self):
         if 'add_tilemap' in self.menu.events['button_click']:
@@ -16,6 +17,9 @@ class Tilemaps_Manager:
     def add_buttons(self, images, index, filepath, image_scale):
         buttons = []
         offset = self.menu.position.copy()
+
+        if filepath not in self.tilemaps:
+            self.tilemaps.append(filepath)
 
         for button in self.menu.buttons:
             if button.image:
