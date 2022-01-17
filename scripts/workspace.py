@@ -1,4 +1,4 @@
-import pygame, json
+import pygame, random, json
 from .funcs import load_images_from_spritesheet
 from .layer import Layer
 from .rectangle import Rectangle
@@ -14,6 +14,8 @@ class Workspace:
         self.scroll = [0,0]
         self.current_layer_index = 0
         self.current_tile = None
+        self.randomizing = False
+        self.autotiling = False
 
         self.rectangle = Rectangle(self.level_editor)
 
@@ -23,15 +25,18 @@ class Workspace:
         for layer in self.layers.values():
             layer.render()
 
+        self.render_hovering_tile()
+        self.rectangle.render()
+
+    def render_hovering_tile(self):
         if self.current_tile:
             image = self.current_tile.image
             image = pygame.transform.scale(image, (int(image.get_width() * self.current_tile_data[3]), int(image.get_height() * self.current_tile_data[3])))
             image.set_colorkey((0,0,0))
-
-            self.level_editor.screen.blit(image, (210, 10))
-            self.current_tile.highlight(self.level_editor.screen)
-
-        self.rectangle.render()
+            image.set_alpha(100)
+            position = [self.level_editor.input_system.mouse_position[0]+self.scroll[0], self.level_editor.input_system.mouse_position[1]+self.scroll[1]]
+            tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+            self.level_editor.screen.blit(image, [tile_position[0]-self.scroll[0], tile_position[1]-self.scroll[1]])
 
     def update(self):
         self.handle_inputs()
@@ -44,8 +49,6 @@ class Workspace:
             self.current_tile = None
 
         if self.level_editor.tilemaps_manager.menu.selected_object and self.level_editor.tilemaps_manager.menu.selected_object.object_id == 'button' and self.level_editor.tilemaps_manager.menu.selected_object.id != 'add_tilemap':
-            #TODO
-            # self.current_tile_index = self.level_editor.tilemaps_manager.menu.buttons.index(self.level_editor.tilemaps_manager.menu.selected_object)-1
             self.current_tile = self.level_editor.tilemaps_manager.menu.selected_object
 
         if self.level_editor.layers_manager.menu.is_mouse_hovering() or self.level_editor.tilemaps_manager.menu.is_mouse_hovering():
@@ -67,7 +70,15 @@ class Workspace:
 
         if self.current_tile:
             if self.level_editor.input_system.mouse_states['left_held'] and not any([menu.is_mouse_hovering() for menu in self.level_editor.menu_manager.menus]):
-                self.current_layer.add_tile(*self.current_tile_data)
+                data = self.current_tile_data
+                if self.randomizing:
+                    data = self.random_tile_data
+
+                tile = self.current_layer.add_tile(*data)
+
+                if self.autotiling:
+                    self.autotile(self.current_layer.get_tile_neighbors(tile)+[tile])
+
             if self.level_editor.input_system.mouse_states['left'] and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
                 self.current_layer.fill([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
 
@@ -85,8 +96,7 @@ class Workspace:
                 self.scroll[0] += 10 * self.level_editor.fps * self.level_editor.dt
 
         if pygame.K_t in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
-            tiles = self.get_tiles_within_rect()
-            self.current_layer.autotile(tiles)
+            self.autotile()
 
         if pygame.K_z in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             self.current_layer.undo()
@@ -96,17 +106,17 @@ class Workspace:
 
         if pygame.K_o in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             filename = self.level_editor.ask_open_filename()
-            if filename != ():
+            if filename != () and filename != '':
                 self.load(filename)
 
         if pygame.K_s in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             filename = self.level_editor.ask_save_filename()
-            if filename != ():
+            if filename != () and filename != '':
                 self.save(filename)
 
         if pygame.K_t in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]) and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LSHIFT, pygame.K_RSHIFT]]):
             filename = self.level_editor.ask_open_filename()
-            if filename != ():
+            if filename != () and filename != '':
                 self.autotile_filename = filename
                 print('NEW AUTOTILE FILE: ', self.autotile_filename)
 
@@ -187,6 +197,15 @@ class Workspace:
 
         self.level_editor.layers_manager.reorder_layers()
 
+    def autotile(self, autotile_tiles=None):
+        tiles = self.get_tiles_within_rect()
+
+        if self.autotiling and autotile_tiles:
+            tiles = autotile_tiles
+            print(tiles)
+
+        self.current_layer.autotile(tiles)
+
     def add_tilemap(self, tilemap, filepath, spritesheet_index, image_scale):
         self.tiles[self.current_layer].append([tilemap, filepath, spritesheet_index, image_scale])
 
@@ -194,7 +213,8 @@ class Workspace:
         return self.current_layer.get_tiles_within_rect(self.rectangle.rect)
 
     def save(self, filename):
-        data = {'layers': [layer.get_data(self.level_editor.tilemaps_manager.tilemaps) for layer in self.layers.values()], 'tilemaps': self.level_editor.tilemaps_manager.tilemaps}
+        tilemaps = list(self.level_editor.tilemaps_manager.tilemaps.keys())
+        data = {'layers': [layer.get_data(tilemaps) for layer in self.layers.values()], 'tilemaps': self.level_editor.tilemaps_manager.tilemaps}
         json.dump(data, open(filename, 'w'))
 
     def load(self, filename):
@@ -207,7 +227,7 @@ class Workspace:
         data = json.load(open(filename, 'r'))
 
         layers = data['layers']
-        tilemaps = data['tilemaps']
+        tilemaps = list(data['tilemaps'].keys())
         tilemap_types = {}
 
         for layer_data in layers:
@@ -248,7 +268,14 @@ class Workspace:
                 images = load_images_from_spritesheet(filepath)
 
             if len(images):
-                self.level_editor.tilemaps_manager.add_buttons(images, index, filepath, image_scale)
+                self.level_editor.tilemaps_manager.add_buttons(images, index, filepath, image_scale, data['tilemaps'][filepath])
+
+    @property
+    def random_tile_data(self):
+        if self.current_tile:
+            tiles = self.tiles[self.current_layer]
+            same_file_tiles = [tile for tile in tiles if tile[1] == self.current_tile_data[1]]
+            return random.choice(same_file_tiles)
 
     @property
     def current_layer(self):

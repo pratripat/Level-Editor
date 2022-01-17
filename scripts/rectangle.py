@@ -45,5 +45,4 @@ class Rectangle:
     def rect(self):
         if self.formed:
             return pygame.Rect(*self.start_position, self.end_position[0]-self.start_position[0], self.end_position[1]-self.start_position[1])
-        else:
-            pygame.Rect(0, 0, 0, 0)
+        return pygame.Rect(0, 0, 0, 0)

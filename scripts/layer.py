@@ -56,7 +56,8 @@ class Layer:
         tiles = [tile for chunk in chunks for tile in chunk.tiles]
 
         for tile in autotile_tiles:
-            tile.autotile(self.level_editor.workspace.autotile_filename, tiles, self.level_editor.workspace.TILE_RES, True)
+            if self.level_editor.tilemaps_manager.tilemaps[tile.filepath]:
+                tile.autotile(self.level_editor.workspace.autotile_filename, tiles, self.level_editor.workspace.TILE_RES, True)
 
         self.add_change()
 
@@ -103,12 +104,27 @@ class Layer:
         if chunk:
             return chunk.get_tile(position)
 
+    def get_tile_neighbors(self, tile):
+        neighbors = []
+        position = [(tile.position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (tile.position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+        for dir in [(0,-1), (1,0), (0,1), (-1,0)]:
+            new_position = [position[0]+self.level_editor.workspace.TILE_RES*dir[0], position[1]+self.level_editor.workspace.TILE_RES*dir[1]]
+            chunk = self.get_chunk(new_position)
+
+            if chunk in self.visible_chunks:
+                neighbor = chunk.get_tile(new_position)
+
+                if neighbor:
+                    neighbors.append(neighbor)
+        return neighbors
+
     def add_tile(self, tile, filepath, spritesheet_index, image_scale):
         position = [self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]]
         tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
         chunk = self.get_chunk(position)
         chunk.remove_tile(tile_position)
-        chunk.add_tile(tile.image, tile_position, filepath, spritesheet_index, image_scale)
+        tile = chunk.add_tile(tile.image, tile_position, filepath, spritesheet_index, image_scale)
+        return tile
 
     def remove_tile(self, position):
         tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
@@ -116,11 +132,10 @@ class Layer:
         chunk.remove_tile(tile_position)
 
     def remove_tiles(self, tiles):
+        self.add_change()
         for tile in tiles:
             chunk = tile.chunk
             chunk.tiles.remove(tile)
-
-        self.add_change()
 
     def load(self, data, tilemaps):
         for tile_data in data:

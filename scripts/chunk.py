@@ -29,6 +29,7 @@ class Chunk:
         image.set_colorkey((0,0,0))
         tile = Tile(self, image, position, filepath, spritesheet_index, image_scale, id)
         self.tiles.append(tile)
+        return tile
 
     def remove_tile(self, position):
         tiles = [tile for tile in self.tiles if tile.position == position]
