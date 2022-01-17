@@ -100,7 +100,7 @@ class Font:
         return surf
 
     #Renders the text on the surface
-    def render(self, screen, text, position, center=(False, False), scale=1, color=None, background_color=None, alpha=255, font_wrapping_width=None):
+    def render(self, screen, text, position, center=(False, False), scale=1, color=None, background_color=None, alpha=255, font_wrapping_width=10000):
         font_wrapping_width = max(10, font_wrapping_width)
 
         text = text.upper()

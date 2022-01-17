@@ -1,3 +1,5 @@
+import os
+from .font_renderer import Font
 from .funcs import load_images_from_spritesheet
 from tkinter import *
 from tkinter import filedialog
@@ -6,6 +8,7 @@ from .menu_manager import Menu_Manager
 from .workspace import Workspace
 from .menus.layers_manager import Layers_Manager
 from .menus.layers_options_manager import Layers_Options_Manager
+from .menus.tilemaps_options_manager import Tilemaps_Options_Manager
 from .menus.tilemaps_manager import Tilemaps_Manager
 
 import pygame
@@ -27,9 +30,12 @@ class Level_Editor:
 
         self.layers_manager = Layers_Manager(self)
         self.layers_options_manager = Layers_Options_Manager(self)
+        self.tilemaps_options_manager = Tilemaps_Options_Manager(self)
         self.tilemaps_manager = Tilemaps_Manager(self)
-
         self.workspace = Workspace(self)
+        self.font = Font('data/graphics/font.png')
+
+        self.absolute_filepath = os.path.abspath("..")
 
         self.pop_up_menu = None
 
@@ -44,6 +50,9 @@ class Level_Editor:
 
         self.workspace.render()
         self.menu_manager.render(self.screen)
+
+        self.font.render(self.screen, f'mouse position- {self.input_system.mouse_position}', [210, self.screen.get_height()-30], center=(False, False), scale=1.5, color=(245, 239, 126))
+        self.font.render(self.screen, f'mouse position- {self.input_system.mouse_position}', [self.screen.get_width()-480, self.screen.get_height()-30], center=(False, False), scale=1.5, color=(245, 239, 126))
 
         pygame.display.update()
 
@@ -68,6 +77,7 @@ class Level_Editor:
     def update_inputs(self):
         self.layers_manager.update_inputs()
         self.layers_options_manager.update_inputs()
+        self.tilemaps_options_manager.update_inputs()
         self.tilemaps_manager.update_inputs()
 
         if self.pop_up_menu:
@@ -93,7 +103,9 @@ class Level_Editor:
                             images = load_images_from_spritesheet(filepath)
                             index = 0
 
-                        self.tilemaps_manager.add_buttons(images, index, filepath, image_scale)
+                        autotile = self.pop_up_menu.get_object_with_id('autotile_checkbox').checked
+
+                        self.tilemaps_manager.add_buttons(images, index, filepath, image_scale, autotile)
 
             if self.pop_up_menu and 'close_button' in self.pop_up_menu.events['button_click']:
                 self.menu_manager.menus.remove(self.pop_up_menu)

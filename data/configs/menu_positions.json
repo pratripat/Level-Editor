@@ -11,6 +11,10 @@
     "render_according_to_scroll": false,
     "position": ["left_edge", "bottom_edge"]
   },
+  "tilemaps_options_menu": {
+    "render_according_to_scroll": false,
+    "position": ["right_edge", "bottom_edge"]
+  },
   "load_tilemap_menu": {
     "render_according_to_scroll": false,
     "position": ["center", "center"]
