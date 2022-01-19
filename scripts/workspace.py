@@ -16,14 +16,25 @@ class Workspace:
         self.current_tile = None
         self.randomizing = False
         self.autotiling = False
+        self.grid_mode = True
+        self.current_layer_mode = False
 
         self.rectangle = Rectangle(self.level_editor)
 
         self.autotile_filename = 'data/autotile/8_bit_autotiling.json'
 
     def render(self):
-        for layer in self.layers.values():
-            layer.render()
+        if self.current_layer_mode:
+            surface = pygame.Surface(self.level_editor.screen.get_size())
+            surface.set_colorkey((0,0,0))
+            surface.set_alpha(128)
+            for layer in self.layers.values():
+                layer.render(surface)
+            self.level_editor.screen.blit(surface, (0,0))
+            self.current_layer.render()
+        else:
+            for layer in self.layers.values():
+                layer.render()
 
         self.render_hovering_tile()
         self.rectangle.render()
@@ -35,10 +46,19 @@ class Workspace:
             image.set_colorkey((0,0,0))
             image.set_alpha(100)
             position = [self.level_editor.input_system.mouse_position[0]+self.scroll[0], self.level_editor.input_system.mouse_position[1]+self.scroll[1]]
-            tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+
+            if self.grid_mode:
+                tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+            else:
+                tile_position = position
+
             self.level_editor.screen.blit(image, [tile_position[0]-self.scroll[0], tile_position[1]-self.scroll[1]])
 
     def update(self):
+        if not self.grid_mode:
+            self.autotiling = False
+            self.level_editor.tilemaps_options_manager.menu.get_object_with_id('autotiling_checkbox').checked = False
+
         self.handle_inputs()
 
         if self.level_editor.layers_manager.menu.selected_object and self.level_editor.layers_manager.menu.selected_object.object_id == 'textbox' and self.level_editor.layers_manager.menu.selected_object.id != 'layers_title':
@@ -83,7 +103,10 @@ class Workspace:
                 self.current_layer.fill([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
 
         if self.level_editor.input_system.mouse_states['left_held'] and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LSHIFT, pygame.K_RSHIFT]]):
-            self.current_layer.remove_tile([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
+            tiles = self.current_layer.remove_tile([self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]])
+
+            if self.autotiling and len(tiles):
+                self.autotile(self.current_layer.get_tile_neighbors(tiles[0]))
 
         if not self.level_editor.layers_manager.menu.selected_object:
             if pygame.K_w in self.level_editor.input_system.keys_held:
@@ -103,6 +126,12 @@ class Workspace:
 
         if pygame.K_y in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             self.current_layer.redo()
+
+        if pygame.K_g in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
+            self.grid_mode = not self.grid_mode
+
+        if pygame.K_l in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
+            self.current_layer_mode = not self.current_layer_mode
 
         if pygame.K_o in self.level_editor.input_system.keys_pressed and any([key in self.level_editor.input_system.keys_held for key in [pygame.K_LCTRL, pygame.K_RCTRL]]):
             filename = self.level_editor.ask_open_filename()
@@ -202,7 +231,6 @@ class Workspace:
 
         if self.autotiling and autotile_tiles:
             tiles = autotile_tiles
-            print(tiles)
 
         self.current_layer.autotile(tiles)
 
@@ -223,6 +251,10 @@ class Workspace:
         self.layers.clear()
         self.level_editor.layers_manager.clear_textboxes()
         self.level_editor.tilemaps_manager.clear_buttons()
+
+        self.scroll = [0,0]
+        self.current_layer_index = 0
+        self.current_tile = None
 
         data = json.load(open(filename, 'r'))
 

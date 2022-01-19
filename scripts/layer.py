@@ -10,10 +10,13 @@ class Layer:
         self.changes = []
         self.undos = []
 
-    def render(self):
+    def render(self, screen=None):
+        if screen == None:
+            screen = self.level_editor.screen
+
         for chunk in self.visible_chunks:
-            chunk.render(self.level_editor.screen, self.level_editor.workspace.scroll)
-            pygame.draw.rect(self.level_editor.screen, (255,255,255), (chunk.position[0]-self.level_editor.workspace.scroll[0], chunk.position[1]-self.level_editor.workspace.scroll[1], self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES), 1)
+            chunk.render(screen, self.level_editor.workspace.scroll)
+            pygame.draw.rect(screen, (255,255,255), (chunk.position[0]-self.level_editor.workspace.scroll[0], chunk.position[1]-self.level_editor.workspace.scroll[1], self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES, self.level_editor.workspace.CHUNK_SIZE*self.level_editor.workspace.TILE_RES), 1)
 
     def update(self):
         if len(self.changes) == 0:
@@ -39,8 +42,12 @@ class Layer:
 
                 #If the neighbor is not yet defined, the neighbor becomes a tile object and is put into the tiles list
                 if not neighbor:
-                    tile, filepath, spritesheet_index, image_scale = self.level_editor.workspace.current_tile_data
-                    chunk.add_tile(tile.image, new_position, filepath, spritesheet_index, image_scale)
+                    if self.level_editor.workspace.randomizing:
+                        tile, filepath, spritesheet_index, image_scale = self.level_editor.workspace.random_tile_data
+                    else:
+                        tile, filepath, spritesheet_index, image_scale = self.level_editor.workspace.current_tile_data
+
+                    chunk.add_tile(tile.image, new_position, filepath, spritesheet_index, image_scale, self.get_unique_id())
 
                     self.fill(new_position, depth-1)
 
@@ -53,11 +60,17 @@ class Layer:
             if tile.chunk not in chunks:
                 chunks.append(tile.chunk)
 
+            neighbors = self.get_chunk_neighbors(tile.chunk)
+            for chunk in neighbors:
+                if chunk not in chunks:
+                    chunks.append(chunk)
+
         tiles = [tile for chunk in chunks for tile in chunk.tiles]
+        # tiles = [tile for chunk in self.chunks.values() for tile in chunk.tiles]
 
         for tile in autotile_tiles:
             if self.level_editor.tilemaps_manager.tilemaps[tile.filepath]:
-                tile.autotile(self.level_editor.workspace.autotile_filename, tiles, self.level_editor.workspace.TILE_RES, True)
+                tile.autotile(self.level_editor.workspace.autotile_filename, tiles, self.level_editor.workspace.TILE_RES)
 
         self.add_change()
 
@@ -99,6 +112,12 @@ class Layer:
             if len(self.chunks[position].tiles) == 0:
                 del self.chunks[position]
 
+    def get_unique_id(self):
+        tiles = [tile for chunk in self.chunks.values() for tile in chunk.tiles]
+        if len(tiles) == 0:
+            return 10000
+        return max([tile.id for tile in tiles])+1
+
     def get_tile_with_position(self, position):
         chunk = self.get_chunk(position)
         if chunk:
@@ -107,7 +126,7 @@ class Layer:
     def get_tile_neighbors(self, tile):
         neighbors = []
         position = [(tile.position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (tile.position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
-        for dir in [(0,-1), (1,0), (0,1), (-1,0)]:
+        for dir in [(0,-1), (1,-1), (1,0), (1,1), (0,1), (-1,1), (-1,0), (-1,-1)]:
             new_position = [position[0]+self.level_editor.workspace.TILE_RES*dir[0], position[1]+self.level_editor.workspace.TILE_RES*dir[1]]
             chunk = self.get_chunk(new_position)
 
@@ -118,18 +137,37 @@ class Layer:
                     neighbors.append(neighbor)
         return neighbors
 
+    def get_chunk_neighbors(self, chunk):
+        neighbors = []
+        position = chunk.position
+        for dir in [(0,-1), (1,-1), (1,0), (1,1), (0,1), (-1,1), (-1,0), (-1,-1)]:
+            new_position = [position[0]+self.level_editor.workspace.TILE_RES*self.level_editor.workspace.CHUNK_SIZE*dir[0], position[1]+self.level_editor.workspace.TILE_RES*self.level_editor.workspace.CHUNK_SIZE*dir[1]]
+            chunk = self.get_chunk(new_position)
+            neighbors.append(chunk)
+        return neighbors
+
     def add_tile(self, tile, filepath, spritesheet_index, image_scale):
         position = [self.level_editor.input_system.mouse_position[0]+self.level_editor.workspace.scroll[0], self.level_editor.input_system.mouse_position[1]+self.level_editor.workspace.scroll[1]]
-        tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+
+        if self.level_editor.workspace.grid_mode:
+            tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+        else:
+            tile_position = position
+
         chunk = self.get_chunk(position)
         chunk.remove_tile(tile_position)
-        tile = chunk.add_tile(tile.image, tile_position, filepath, spritesheet_index, image_scale)
+        tile = chunk.add_tile(tile.image, tile_position, filepath, spritesheet_index, image_scale, self.get_unique_id())
         return tile
 
     def remove_tile(self, position):
-        tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
-        chunk = self.get_chunk(tile_position)
-        chunk.remove_tile(tile_position)
+        if self.level_editor.workspace.grid_mode:
+            tile_position = [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES]
+        else:
+            print(position, [(position[0]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES, (position[1]//self.level_editor.workspace.TILE_RES)*self.level_editor.workspace.TILE_RES])
+            tile_position = position
+        chunk = self.get_chunk(position)
+        tiles = chunk.remove_tile(tile_position)
+        return tiles
 
     def remove_tiles(self, tiles):
         self.add_change()

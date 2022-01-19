@@ -9,12 +9,12 @@ class Chunk:
         self.tiles = []
 
     def render(self, screen, scroll=[0,0]):
-        for entity in self.tiles:
-            entity.render(screen, scroll)
+        for tile in self.tiles:
+            tile.render(screen, scroll)
 
     def update(self):
-        for entity in self.tiles:
-            entity.update()
+        for tile in self.tiles:
+            tile.update()
 
     def load_tile(self, position, id, filepath, spritesheet_index, image_scale):
         if spritesheet_index != None:
@@ -27,6 +27,10 @@ class Chunk:
     def add_tile(self, image, position, filepath, spritesheet_index, image_scale, id=None):
         image = pygame.transform.scale(image, (int(image.get_width()*image_scale), int(image.get_height()*image_scale)))
         image.set_colorkey((0,0,0))
+
+        if id == None:
+            id = self.get_unique_id()
+
         tile = Tile(self, image, position, filepath, spritesheet_index, image_scale, id)
         self.tiles.append(tile)
         return tile
@@ -35,11 +39,17 @@ class Chunk:
         tiles = [tile for tile in self.tiles if tile.position == position]
         for tile in tiles:
             self.tiles.remove(tile)
+        return tiles
 
     def get_tile(self, position):
         for tile in self.tiles:
             if tile.position == position:
                 return tile
+
+    def get_unique_id(self):
+        if len(self.tiles) == 0:
+            return 10000
+        return max([tile.id for tile in self.tiles])+1
 
     @property
     def rect(self):
