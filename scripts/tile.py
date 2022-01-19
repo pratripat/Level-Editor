@@ -17,7 +17,7 @@ class Tile:
     def update(self):
         pass
 
-    def autotile(self, filepath, tiles, res,):
+    def autotile(self, filepath, tiles, res):
         if self.spritesheet_index == None:
             return
 
