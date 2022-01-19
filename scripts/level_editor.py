@@ -49,12 +49,18 @@ class Level_Editor:
         self.screen.fill((0, 0, 0))
 
         self.workspace.render()
-        self.menu_manager.render(self.screen)
 
-        self.font.render(self.screen, f'mouse position- {self.input_system.mouse_position}', [210, self.screen.get_height()-30], center=(False, False), scale=1.5, color=(245, 239, 126))
-        self.font.render(self.screen, f'mouse position- {self.input_system.mouse_position}', [self.screen.get_width()-480, self.screen.get_height()-30], center=(False, False), scale=1.5, color=(245, 239, 126))
+        self.render_ui()
 
         pygame.display.update()
+
+    def render_ui(self):
+        self.menu_manager.render(self.screen)
+
+        self.font.render(self.screen, f'mouse position- {self.input_system.mouse_position}', [210, self.screen.get_height()-30], scale=1.5, color=(251,245,239))
+        self.font.render(self.screen, f'mouse position- {self.input_system.mouse_position}', [self.screen.get_width()-480, self.screen.get_height()-30], scale=1.5, color=(251,245,239))
+
+        self.font.render(self.screen, f'grid mode- {self.workspace.grid_mode}', [210, 10], color=(251,245,239))
 
     def update(self):
         self.window_size = self.screen.get_size()

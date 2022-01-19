@@ -2,11 +2,8 @@ import time, random, json, pygame
 from .funcs import load_images_from_spritesheet
 
 class Tile:
-    def __init__(self, chunk, image, position, filepath, spritesheet_index, image_scale, id=None):
-        if id == None:
-            self.id = int(time.time()*1000)
-        else:
-            self.id = id
+    def __init__(self, chunk, image, position, filepath, spritesheet_index, image_scale, id):
+        self.id = id
         self.chunk = chunk
         self.image = image
         self.position = position
@@ -20,7 +17,7 @@ class Tile:
     def update(self):
         pass
 
-    def autotile(self, filepath, tiles, res, eight_bit_autotiling=False):
+    def autotile(self, filepath, tiles, res,):
         if self.spritesheet_index == None:
             return
 
@@ -65,9 +62,7 @@ class Tile:
         config = json.load(open(filepath, 'r'))
 
         #Directions (in particular order)
-        directions = [[0, -1], [1, 0], [0, 1], [-1, 0]]
-        if eight_bit_autotiling:
-            directions = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]
+        directions = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]
 
         #Calculating the binary
         binary = ''
