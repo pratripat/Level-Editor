@@ -2,8 +2,9 @@ import pygame, sys, json, tkinter
 from tkinter import *
 from tkinter import filedialog
 
-# INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data/autotile/8_bit_autotiling2.json'
-INITIAL_DIR = '/home/shubhendu/Documents/puttar/python/ImagesFromSpritesheet/images'
+from scripts.funcs import resolve_path
+
+INITIAL_DIR = resolve_path('')
 
 def load_images_from_spritesheet(filename):
     #Tries to load the file

@@ -17,7 +17,10 @@ pygame.init()
 
 pygame.display.set_caption('Level Editor')
 
-INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data'
+from .funcs import resolve_path
+
+INITIAL_DIR = resolve_path('data')
+print(INITIAL_DIR)
 
 class Level_Editor:
     def __init__(self):
@@ -33,7 +36,7 @@ class Level_Editor:
         self.tilemaps_options_manager = Tilemaps_Options_Manager(self)
         self.tilemaps_manager = Tilemaps_Manager(self)
         self.workspace = Workspace(self)
-        self.font = Font('data/graphics/font.png')
+        self.font = Font(f'{INITIAL_DIR}/graphics/font.png')
 
         self.absolute_filepath = os.path.abspath("..")
 

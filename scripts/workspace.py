@@ -1,5 +1,5 @@
 import pygame, random, json
-from .funcs import load_images_from_spritesheet
+from .funcs import load_images_from_spritesheet, resolve_path
 from .layer import Layer
 from .rectangle import Rectangle
 
@@ -21,7 +21,7 @@ class Workspace:
 
         self.rectangle = Rectangle(self.level_editor)
 
-        self.autotile_filename = 'data/autotile/8_bit_autotiling.json'
+        self.autotile_filename = resolve_path('data/autotile/8_bit_autotiling.json')
 
     def render(self):
         if self.current_layer_mode:

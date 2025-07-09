@@ -5,10 +5,12 @@ from .ui_components.textbox import TextBox
 from .ui_components.checkbox import CheckBox
 from .ui_components.radiobutton import RadioButton
 
+from ..funcs import resolve_path
+
 class Menu:
     def __init__(self, data=None):
         if not data:
-            data = json.load(open('data/configs/default/menu.json', 'r'))
+            data = json.load(open(resolve_path('data/configs/default/menu.json'), 'r'))
 
         self.is_menu = True
         self.object_id = 'menu'

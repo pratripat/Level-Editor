@@ -1,6 +1,7 @@
 import json
 
 from .ux.menu import Menu
+from .funcs import resolve_path
 
 class Menu_Manager:
     def __init__(self):
@@ -32,11 +33,12 @@ class Menu_Manager:
             print('=========================================')
 
     def load_menu_positions(self, exception_ids=[]):
-        self.menu_positions = json.load(open('data/configs/menu_positions.json', 'r'))
+        self.menu_positions = json.load(open(resolve_path('data/configs/menu_positions.json'), 'r'))
 
         for menu_id in self.menu_positions:
             if menu_id not in exception_ids:
-                self.load_menus(f'data/menus/{menu_id}.json')
+                rel_path = f'data/menus/{menu_id}.json'
+                self.load_menus(resolve_path(rel_path))
 
         for menu in self.menus:
             menu.render_according_to_scroll = self.menu_positions[menu.id]['render_according_to_scroll']

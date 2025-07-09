@@ -1,4 +1,18 @@
 import pygame, math, random
+from pathlib import Path
+
+def resolve_path(filepath):
+    """
+    Resolve a file path relative to the base directory of the project.
+    :param filepath: The relative path to resolve.
+    :return: The absolute path.
+    """
+    if not filepath:
+        print('Resolve path was called with filepath=None')
+        return ''
+    
+    base_dir = Path(__file__).parent.parent.resolve()  # Adjust to your project's root directory
+    return base_dir / filepath
 
 def load_images_from_spritesheet(filename):
     #Tries to load the file
