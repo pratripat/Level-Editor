@@ -14,6 +14,35 @@ def resolve_path(filepath):
     base_dir = Path(__file__).parent.parent.resolve()  # Adjust to your project's root directory
     return base_dir / filepath
 
+def load_images_from_tilemap(filename, tile_size=32, skip_empty=True):
+    """
+    Load tile images from a spritesheet, optionally skipping empty tiles.
+
+    :param filepath: Path to the spritesheet image.
+    :param tile_size: Width and height of each tile (assumes square tiles).
+    :param skip_empty: Whether to skip fully transparent or empty tiles.
+    :return: List of Pygame Surfaces, one per non-empty tile.
+    """
+    spritesheet = pygame.image.load(filename).convert()
+    sheet_width, sheet_height = spritesheet.get_size()
+
+    tiles = []
+    for y in range(0, sheet_height, tile_size):
+        for x in range(0, sheet_width, tile_size):
+            tile = pygame.Surface((tile_size, tile_size))
+            tile.set_colorkey((0,0,0))
+            tile.blit(spritesheet, (0, 0), (x, y, tile_size, tile_size))
+
+            if skip_empty:
+                # Check if the tile is completely transparent
+                if not pygame.mask.from_surface(tile).count():
+                    continue
+
+            tiles.append(tile)
+
+    return tiles
+
+
 def load_images_from_spritesheet(filename):
     #Tries to load the file
     try:

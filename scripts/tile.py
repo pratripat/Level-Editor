@@ -1,5 +1,5 @@
 import time, random, json, pygame
-from .funcs import load_images_from_spritesheet
+from .funcs import load_images_from_spritesheet, load_images_from_tilemap
 
 class Tile:
     def __init__(self, chunk, image, position, filepath, spritesheet_index, image_scale, id):
@@ -30,32 +30,23 @@ class Tile:
             return '0'
 
         def get_tile_index(config, binary):
-            if binary in config.keys():
+            if binary in config:
                 return random.choice(config[binary])
 
-            #Checking the top right bottom left tiles
-            keys = []
-            for key in config.keys():
-                for i, number in enumerate(binary):
-                    if i % 2 == 0:
-                        if number != key[i]:
-                            break
-                else:
-                    keys.append(key)
+            # Fallback: partial match (strict on cross directions)
+            fallback = []
+            for key in config:
+                # Check cardinal (even index)
+                if all(binary[i] == key[i] for i in range(0, 8, 2)):
+                    fallback.append(key)
 
-            #Checking the diagonal tiles
-            for key in keys[:]:
-                for i, number in enumerate(key):
-                    if i % 2 != 0:
-                        if number == '1':
-                            if binary[i] != '1':
-                                keys.remove(key)
-                                break
+            # Check diagonal consistency (odd index)
+            fallback = [key for key in fallback if all(
+                key[i] == '0' or binary[i] == '1' for i in range(1, 8, 2)
+            )]
 
-            #Returning the indexes with the calculated key
-            if len(keys):
-                key = keys[0]
-                return random.choice(config[key])
+            if fallback:
+                return random.choice(config[fallback[0]])
 
             return None
 
@@ -74,8 +65,12 @@ class Tile:
 
         #Trying to change the image with the calculated index and spritesheet
         try:
+            try: 
+                image = load_images_from_spritesheet(self.filepath)[index]
+            except: 
+                image = load_images_from_tilemap(self.filepath)[index]
+
             self.spritesheet_index = index
-            image = load_images_from_spritesheet(self.filepath)[index]
             image = pygame.transform.scale(image, (int(image.get_width() * self.image_scale), int(image.get_height() * self.image_scale)))
             image.set_colorkey((0,0,0))
             self.image = image

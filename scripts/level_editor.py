@@ -1,6 +1,6 @@
 import os
 from .font_renderer import Font
-from .funcs import load_images_from_spritesheet
+from .funcs import load_images_from_spritesheet, load_images_from_tilemap
 from tkinter import *
 from tkinter import filedialog
 from .input_system import Input
@@ -12,6 +12,7 @@ from .menus.tilemaps_options_manager import Tilemaps_Options_Manager
 from .menus.tilemaps_manager import Tilemaps_Manager
 
 import pygame
+import threading
 
 pygame.init()
 
@@ -20,7 +21,6 @@ pygame.display.set_caption('Level Editor')
 from .funcs import resolve_path
 
 INITIAL_DIR = resolve_path('data')
-print(INITIAL_DIR)
 
 class Level_Editor:
     def __init__(self):
@@ -44,9 +44,17 @@ class Level_Editor:
 
         self.workspace.add_layer()
         self.layers_manager.add_textbox()
+        
+        self.tk_root = None
 
         self.clock = pygame.time.Clock()
         self.fps = 100
+
+    def initialise_tk(self):
+        if self.tk_root is None:
+            self.tk_root = Tk()
+            self.tk_root.withdraw()
+            self.tk_root.focus_force()
 
     def render(self):
         self.screen.fill((0, 0, 0))
@@ -95,26 +103,35 @@ class Level_Editor:
                     self.pop_up_menu.radiobuttons[0].checked = True
 
                 if 'load_button' in self.pop_up_menu.events['button_click']:
-                    Tk().withdraw()
-                    filepath = filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.png', filetypes = [('PNG', '*.png')])
-                    if filepath != ():
-                        checked_radiobutton_id = self.pop_up_menu.get_checked_radiobutton().id
+                    # self.initialise_tk()
 
-                        image_scale = ''.join(i for i in self.pop_up_menu.get_object_with_id('scale_textbox').text if i.isdigit() or i == '.')
-                        if image_scale == '' or image_scale == '.': image_scale = '1'
-                        image_scale = float(image_scale)
+                    # filepath = self.open_png_thread.start()
+                    filepath = input('Enter the full path of the image to be loaded: ')
+                    try:
+                        if filepath != ():
+                            checked_radiobutton_id = self.pop_up_menu.get_checked_radiobutton().id
 
-                        if checked_radiobutton_id == 'image_radiobutton':
-                            image = pygame.image.load(filepath)
-                            images = [image]
-                            index = None
-                        elif checked_radiobutton_id == 'spritesheet_radiobutton':
-                            images = load_images_from_spritesheet(filepath)
-                            index = 0
+                            image_scale = ''.join(i for i in self.pop_up_menu.get_object_with_id('scale_textbox').text if i.isdigit() or i == '.')
+                            if image_scale == '' or image_scale == '.': image_scale = '1'
+                            image_scale = float(image_scale)
 
-                        autotile = self.pop_up_menu.get_object_with_id('autotile_checkbox').checked
+                            if checked_radiobutton_id == 'image_radiobutton':
+                                image = pygame.image.load(filepath).convert()
+                                images = [image]
+                                index = None
+                            elif checked_radiobutton_id == 'spritesheet_radiobutton':
+                                images = load_images_from_spritesheet(filepath)
+                                index = 0
+                            elif checked_radiobutton_id == 'tilemap_radiobutton':
+                                images = load_images_from_tilemap(filepath)
+                                index = 0
+                                print('hi')
 
-                        self.tilemaps_manager.add_buttons(images, index, filepath, image_scale, autotile)
+                            autotile = self.pop_up_menu.get_object_with_id('autotile_checkbox').checked
+
+                            self.tilemaps_manager.add_buttons(images, index, filepath, image_scale, autotile)
+                    except Exception as e:
+                        print(e)
 
             if self.pop_up_menu and 'close_button' in self.pop_up_menu.events['button_click']:
                 self.menu_manager.menus.remove(self.pop_up_menu)
@@ -129,11 +146,11 @@ class Level_Editor:
             self.render()
 
     def ask_save_filename(self):
-        Tk().withdraw()
+        self.initialise_tk()
         return filedialog.asksaveasfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
 
     def ask_open_filename(self):
-        Tk().withdraw()
+        self.initialise_tk()
         return filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
 
     @property

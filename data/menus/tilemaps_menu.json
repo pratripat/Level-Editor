@@ -1,1 +1,119 @@
-[{"id": "tilemaps_menu", "position": [0, 0], "size": [200, 630], "centered": false, "background_color": [73, 78, 126], "border_color": [255, 255, 209], "border_width": 1, "border_radius": 10, "opacity": 50, "buttons": [{"id": "add_tilemap", "text": "add tilemap", "offset": [100, 590], "size": [150, 40], "centered": true, "background_color": [139, 109, 156], "border_color": [0, 0, 0], "hover_color": [73, 78, 126], "border_width": 1, "border_radius": 10, "opacity": 50, "image": null, "image_scale": 0, "font": "data/graphics/font.png", "font_color": [255, 255, 209], "font_scale": 1.0, "font_background": null, "font_opacity": 100, "interactable": false}], "textboxes": [{"id": "layers_title", "text": "tilemaps", "offset": [100, 40], "size": [150, 40], "centered": true, "background_color": [0, 0, 0], "border_color": [0, 0, 0], "hover_color": [0, 0, 0], "border_width": 1, "border_radius": 10, "opacity": 100, "image": null, "image_scale": 0, "font": "data/graphics/font.png", "font_color": [251, 245, 239], "font_scale": 2.0, "font_background": null, "font_opacity": 100, "interactable": false}], "checkboxes": [], "radiobuttons": []}]
+[
+    {
+        "id": "tilemaps_menu",
+        "position": [
+            0,
+            0
+        ],
+        "size": [
+            250,
+            630
+        ],
+        "centered": false,
+        "background_color": [
+            73,
+            78,
+            126
+        ],
+        "border_color": [
+            255,
+            255,
+            209
+        ],
+        "border_width": 1,
+        "border_radius": 10,
+        "opacity": 50,
+        "buttons": [
+            {
+                "id": "add_tilemap",
+                "text": "add tilemap",
+                "offset": [
+                    125,
+                    590
+                ],
+                "size": [
+                    150,
+                    40
+                ],
+                "centered": true,
+                "background_color": [
+                    139,
+                    109,
+                    156
+                ],
+                "border_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "hover_color": [
+                    73,
+                    78,
+                    126
+                ],
+                "border_width": 1,
+                "border_radius": 10,
+                "opacity": 50,
+                "image": null,
+                "image_scale": 0,
+                "font": "data/graphics/font.png",
+                "font_color": [
+                    255,
+                    255,
+                    209
+                ],
+                "font_scale": 1,
+                "font_background": null,
+                "font_opacity": 100,
+                "interactable": false
+            }
+        ],
+        "textboxes": [
+            {
+                "id": "layers_title",
+                "text": "tilemaps",
+                "offset": [
+                    125,
+                    40
+                ],
+                "size": [
+                    150,
+                    40
+                ],
+                "centered": true,
+                "background_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "border_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "hover_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "border_width": 1,
+                "border_radius": 10,
+                "opacity": 100,
+                "image": null,
+                "image_scale": 0,
+                "font": "data/graphics/font.png",
+                "font_color": [
+                    251,
+                    245,
+                    239
+                ],
+                "font_scale": 2,
+                "font_background": null,
+                "font_opacity": 100,
+                "interactable": false
+            }
+        ],
+        "checkboxes": [],
+        "radiobuttons": []
+    }
+]

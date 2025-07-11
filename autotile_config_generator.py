@@ -50,18 +50,22 @@ def load_images_from_spritesheet(filename):
 
     return images
 
+def initialise_tk():
+    tk_root = Tk()
+    tk_root.withdraw()
+
 def get_open_filename():
-    Tk().withdraw()
+    initialise_tk()
     filename = filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.png', filetypes = [('PNG', '*.png')])
     return filename
 
 def get_load_filename():
-    Tk().withdraw()
+    initialise_tk()
     filename = filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
     return filename
 
 def get_save_filename():
-    Tk().withdraw()
+    initialise_tk()
     filename = filedialog.asksaveasfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
     return filename
 

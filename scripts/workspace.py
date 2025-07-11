@@ -1,10 +1,10 @@
 import pygame, random, json
-from .funcs import load_images_from_spritesheet, resolve_path
+from .funcs import load_images_from_spritesheet, load_images_from_tilemap, resolve_path
 from .layer import Layer
 from .rectangle import Rectangle
 
 class Workspace:
-    TILE_RES = 48
+    TILE_RES = 64
     CHUNK_SIZE = 16
 
     def __init__(self, level_editor):
@@ -242,7 +242,7 @@ class Workspace:
 
     def save(self, filename):
         tilemaps = list(self.level_editor.tilemaps_manager.tilemaps.keys())
-        data = {'layers': [layer.get_data(tilemaps) for layer in self.layers.values()], 'tilemaps': self.level_editor.tilemaps_manager.tilemaps}
+        data = {'layers': {layer.id: layer.get_data(tilemaps)[1] for layer in self.layers.values()}, 'tilemaps': self.level_editor.tilemaps_manager.tilemaps}
         json.dump(data, open(filename, 'w'))
 
     def load(self, filename):
@@ -262,22 +262,24 @@ class Workspace:
         tilemaps = list(data['tilemaps'].keys())
         tilemap_types = {}
 
-        for layer_data in layers:
+        print(layers, tilemaps)
+
+        for layer_id, layer_data in layers.items():
             index, layer = self.add_layer()
-            layer.id = layer_data[0]
-            layer.load(layer_data[1], tilemaps)
+            layer.id = layer_id
+            layer.load(layer_data, tilemaps)
 
             textbox = self.level_editor.layers_manager.add_textbox()
-            textbox.text = layer_data[0]
+            textbox.text = layer_id
 
-            tilemap_types[layer_data[0]] = {'images': [], 'spritesheets': []}
-            for tile_data in layer_data[1]:
+            tilemap_types[layer_id] = {'images': [], 'spritesheets': []}
+            for tile_data in layer_data:
                 if tile_data[3] == None:
-                    if [tilemaps[tile_data[2]], tile_data[4]] not in tilemap_types[layer_data[0]]['images']:
-                        tilemap_types[layer_data[0]]['images'].append([tilemaps[tile_data[2]], tile_data[4]])
+                    if [tilemaps[tile_data[2]], tile_data[4]] not in tilemap_types[layer_id]['images']:
+                        tilemap_types[layer_id]['images'].append([tilemaps[tile_data[2]], tile_data[4]])
                 else:
-                    if [tilemaps[tile_data[2]], tile_data[4]] not in tilemap_types[layer_data[0]]['spritesheets']:
-                        tilemap_types[layer_data[0]]['spritesheets'].append([tilemaps[tile_data[2]], tile_data[4]])
+                    if [tilemaps[tile_data[2]], tile_data[4]] not in tilemap_types[layer_id]['spritesheets']:
+                        tilemap_types[layer_id]['spritesheets'].append([tilemaps[tile_data[2]], tile_data[4]])
 
         #Loading tilemaps
         for i, tilemaps_data in enumerate(tilemap_types.values()):
@@ -289,7 +291,7 @@ class Workspace:
                 index = None
                 filepath = tilemap[0]
                 image_scale = tilemap[1]
-                image = pygame.image.load(filepath)
+                image = pygame.image.load(filepath).convert()
                 image.set_colorkey((0,0,0))
                 images = [image]
 
@@ -298,6 +300,11 @@ class Workspace:
                 filepath = tilemap[0]
                 image_scale = tilemap[1]
                 images = load_images_from_spritesheet(filepath)
+                if len(images) == 0:
+                    try:
+                        images = load_images_from_tilemap(filepath)
+                    except:
+                        continue
 
             if len(images):
                 self.level_editor.tilemaps_manager.add_buttons(images, index, filepath, image_scale, data['tilemaps'][filepath])

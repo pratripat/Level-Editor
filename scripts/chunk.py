@@ -1,5 +1,5 @@
 import pygame
-from .funcs import load_images_from_spritesheet
+from .funcs import load_images_from_spritesheet, load_images_from_tilemap
 from .tile import Tile
 
 class Chunk:
@@ -18,9 +18,12 @@ class Chunk:
 
     def load_tile(self, position, id, filepath, spritesheet_index, image_scale):
         if spritesheet_index != None:
-            image = load_images_from_spritesheet(filepath)[spritesheet_index]
+            try:
+                image = load_images_from_spritesheet(filepath)[spritesheet_index]
+            except:
+                image = load_images_from_tilemap(filepath)[spritesheet_index]
         else:
-            image = pygame.image.load(filepath)
+            image = pygame.image.load(filepath).convert()
 
         self.add_tile(image, position, filepath, spritesheet_index, image_scale, id)
 

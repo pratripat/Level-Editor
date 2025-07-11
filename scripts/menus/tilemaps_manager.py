@@ -26,7 +26,7 @@ class Tilemaps_Manager:
         # else:
         #     print(f'The filepath {filepath} will be saved locally...')
 
-        if filepath not in self.tilemaps.keys():
+        if filepath not in self.tilemaps:
             self.tilemaps[filepath] = autotile
 
         if len(self.menu.buttons) > 1:
