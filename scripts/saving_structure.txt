@@ -1,1 +1,10 @@
-{layer index: [layer type, [{tile position: [tile id, tile filepath, tile spritesheet]}]]}
+''' JSON FILE
+[
+    {layer_id: [pos, id, filepath_index, spritesheet_index, image_scale], ...},
+    {tilemap_id: autotile_bool, ...}
+]
+'''
+
+''' SELF.LAYERS
+{layer_id: {chunk_pos: {tile_pos: [id, pos, image, filepath, spritesheetindex, imagescale]}}}
+'''

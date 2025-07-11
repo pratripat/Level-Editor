@@ -2,8 +2,9 @@ import pygame, sys, json, tkinter
 from tkinter import *
 from tkinter import filedialog
 
-# INITIAL_DIR = '/home/shubhendu/Documents/puttar/github-ssh/Level-Editor/data/autotile/8_bit_autotiling2.json'
-INITIAL_DIR = '/home/shubhendu/Documents/puttar/python/ImagesFromSpritesheet/images'
+from scripts.funcs import resolve_path
+
+INITIAL_DIR = resolve_path('')
 
 def load_images_from_spritesheet(filename):
     #Tries to load the file
@@ -49,18 +50,22 @@ def load_images_from_spritesheet(filename):
 
     return images
 
+def initialise_tk():
+    tk_root = Tk()
+    tk_root.withdraw()
+
 def get_open_filename():
-    Tk().withdraw()
+    initialise_tk()
     filename = filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.png', filetypes = [('PNG', '*.png')])
     return filename
 
 def get_load_filename():
-    Tk().withdraw()
+    initialise_tk()
     filename = filedialog.askopenfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
     return filename
 
 def get_save_filename():
-    Tk().withdraw()
+    initialise_tk()
     filename = filedialog.asksaveasfilename(initialdir = INITIAL_DIR, defaultextension = '.json', filetypes = [('JSON', '*.json')])
     return filename
 

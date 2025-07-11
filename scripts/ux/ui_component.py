@@ -1,13 +1,14 @@
 import pygame, json
 
 from ..font_renderer import Font
+from ..funcs import resolve_path
 
 class UI_Component:
     def __init__(self, menu, object_id, data=None):
         self.menu = menu
 
         if not data:
-            data = json.load(open('data/configs/default/'+object_id+'.json', 'r'))
+            data = json.load(open(resolve_path('data/configs/default/'+object_id+'.json'), 'r'))
 
         self.is_menu = False
 
@@ -42,8 +43,8 @@ class UI_Component:
         self.interactable = data['interactable']
 
         self.current_color = self.background_color
-        self.load_font(data['font'])
-        self.set_image(data['image'])
+        self.load_font(resolve_path(data['font']))
+        self.set_image(resolve_path(data['image']))
 
     def render(self, screen, scroll=[0,0]):
         surface = pygame.Surface(self.size)
