@@ -6,12 +6,20 @@ from scripts.funcs import resolve_path
 
 INITIAL_DIR = resolve_path('')
 
-def load_images_from_spritesheet(filename):
-    #Tries to load the file
+def load_images_from_spritesheet(file_path, colorkey=DEFAULT_COLORKEY, scale=1):
+    """
+    Load images from a spritesheet file, extracting individual images based on color markers.
+    The spritesheet is expected to have specific color markers to define the start and end of images.
+    :param file_path: Path to the spritesheet file.
+    :param colorkey: Color to be treated as transparent for the images.
+    :param scale: Scale factor for the images.
+    :return: List of images extracted from the spritesheet.
+    """
+    # Tries to load the file
     try:
-        spritesheet = pygame.image.load(filename).convert()
+        spritesheet = load_image(file_path, colorkey, scale)
     except Exception as e:
-        print('LOADING SPRITESHEET ERROR: ', e)
+        print(f"[UTILS] Error loading spritesheet '{file_path}': {e} (DEBUG)")
         return []
 
     rows = []
@@ -27,7 +35,7 @@ def load_images_from_spritesheet(filename):
             start_position = []
             pixil = spritesheet.get_at((x, row))
             if pixil[0] == 255 and pixil[1] == 255 and pixil[2] == 0:
-                start_position = [x+1, row+1]
+                start_position = [x+1, row]
                 width = height = 0
 
                 for rel_x in range(start_position[0], spritesheet.get_width()):
@@ -43,12 +51,17 @@ def load_images_from_spritesheet(filename):
                         break
 
                 image = pygame.Surface((width, height))
-                image.set_colorkey((0,0,0))
+                image.set_colorkey(colorkey)
                 image.blit(spritesheet, (-start_position[0], -start_position[1]))
+                image.convert()
+
+                if scale != 1:
+                    image = pygame.transform.scale(image, (image.get_width()*scale, image.get_height()*scale))
 
                 images.append(image)
 
     return images
+
 
 def initialise_tk():
     tk_root = Tk()
