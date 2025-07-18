@@ -1,4 +1,4 @@
-import pygame, math, random
+import pygame, math, random, os
 from pathlib import Path
 
 def resolve_path(filepath):
@@ -42,13 +42,44 @@ def load_images_from_tilemap(filename, tile_size=32, skip_empty=True):
 
     return tiles
 
+# loads an image from a file and applies a colorkey for transparency
+def load_image(path, colorkey=(0,0,0), scale=1):
+    """
+    Load an image from a file and apply a colorkey for transparency.
+    
+    :param path: Path to the image file.
+    :param colorkey: Color to be treated as transparent.
+    :param scale: Scale factor for the image.
+    :return: Scaled image with colorkey applied.
+    """
+    if not os.path.exists(path):
+        # raise FileNotFoundError(f"[UTILS] Image file '{path}' does not exist. (DEBUG)")
+        print(f"[UTILS] Image file '{path}' does not exist. (DEBUG)")
+        return None
+    
+    image = pygame.image.load(path).convert()
+    image.set_colorkey(colorkey)
+    
+    if scale != 1:
+        width, height = image.get_size()
+        image = pygame.transform.scale(image, (width * scale, height * scale))
+    
+    return image
 
-def load_images_from_spritesheet(filename):
-    #Tries to load the file
+def load_images_from_spritesheet(file_path, colorkey=(0,0,0), scale=1):
+    """
+    Load images from a spritesheet file, extracting individual images based on color markers.
+    The spritesheet is expected to have specific color markers to define the start and end of images.
+    :param file_path: Path to the spritesheet file.
+    :param colorkey: Color to be treated as transparent for the images.
+    :param scale: Scale factor for the images.
+    :return: List of images extracted from the spritesheet.
+    """
+    # Tries to load the file
     try:
-        spritesheet = pygame.image.load(filename).convert()
+        spritesheet = load_image(file_path, colorkey, scale)
     except Exception as e:
-        print('LOADING SPRITESHEET ERROR: ', e)
+        print(f"[UTILS] Error loading spritesheet '{file_path}': {e} (DEBUG)")
         return []
 
     rows = []
@@ -64,7 +95,7 @@ def load_images_from_spritesheet(filename):
             start_position = []
             pixil = spritesheet.get_at((x, row))
             if pixil[0] == 255 and pixil[1] == 255 and pixil[2] == 0:
-                start_position = [x+1, row+1]
+                start_position = [x+1, row]
                 width = height = 0
 
                 for rel_x in range(start_position[0], spritesheet.get_width()):
@@ -80,9 +111,14 @@ def load_images_from_spritesheet(filename):
                         break
 
                 image = pygame.Surface((width, height))
-                image.set_colorkey((0,0,0))
+                image.set_colorkey(colorkey)
                 image.blit(spritesheet, (-start_position[0], -start_position[1]))
+                image.convert()
+
+                if scale != 1:
+                    image = pygame.transform.scale(image, (image.get_width()*scale, image.get_height()*scale))
 
                 images.append(image)
 
     return images
+
