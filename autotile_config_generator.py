@@ -6,20 +6,12 @@ from scripts.funcs import resolve_path
 
 INITIAL_DIR = resolve_path('')
 
-def load_images_from_spritesheet(file_path, colorkey=DEFAULT_COLORKEY, scale=1):
-    """
-    Load images from a spritesheet file, extracting individual images based on color markers.
-    The spritesheet is expected to have specific color markers to define the start and end of images.
-    :param file_path: Path to the spritesheet file.
-    :param colorkey: Color to be treated as transparent for the images.
-    :param scale: Scale factor for the images.
-    :return: List of images extracted from the spritesheet.
-    """
-    # Tries to load the file
+def load_images_from_spritesheet(filename):
+    #Tries to load the file
     try:
-        spritesheet = load_image(file_path, colorkey, scale)
+        spritesheet = pygame.image.load(filename).convert()
     except Exception as e:
-        print(f"[UTILS] Error loading spritesheet '{file_path}': {e} (DEBUG)")
+        print('LOADING SPRITESHEET ERROR: ', e)
         return []
 
     rows = []
@@ -35,7 +27,7 @@ def load_images_from_spritesheet(file_path, colorkey=DEFAULT_COLORKEY, scale=1):
             start_position = []
             pixil = spritesheet.get_at((x, row))
             if pixil[0] == 255 and pixil[1] == 255 and pixil[2] == 0:
-                start_position = [x+1, row]
+                start_position = [x+1, row+1]
                 width = height = 0
 
                 for rel_x in range(start_position[0], spritesheet.get_width()):
@@ -51,17 +43,40 @@ def load_images_from_spritesheet(file_path, colorkey=DEFAULT_COLORKEY, scale=1):
                         break
 
                 image = pygame.Surface((width, height))
-                image.set_colorkey(colorkey)
+                image.set_colorkey((0,0,0))
                 image.blit(spritesheet, (-start_position[0], -start_position[1]))
-                image.convert()
-
-                if scale != 1:
-                    image = pygame.transform.scale(image, (image.get_width()*scale, image.get_height()*scale))
 
                 images.append(image)
 
     return images
 
+def load_images_from_tilemap(filename, tile_size=32, skip_empty=True):
+    """
+    Load tile images from a spritesheet, optionally skipping empty tiles.
+
+    :param filepath: Path to the spritesheet image.
+    :param tile_size: Width and height of each tile (assumes square tiles).
+    :param skip_empty: Whether to skip fully transparent or empty tiles.
+    :return: List of Pygame Surfaces, one per non-empty tile.
+    """
+    spritesheet = pygame.image.load(filename).convert()
+    sheet_width, sheet_height = spritesheet.get_size()
+
+    tiles = []
+    for y in range(0, sheet_height, tile_size):
+        for x in range(0, sheet_width, tile_size):
+            tile = pygame.Surface((tile_size, tile_size))
+            tile.set_colorkey((0,0,0))
+            tile.blit(spritesheet, (0, 0), (x, y, tile_size, tile_size))
+
+            if skip_empty:
+                # Check if the tile is completely transparent
+                if not pygame.mask.from_surface(tile).count():
+                    continue
+
+            tiles.append(tile)
+
+    return tiles
 
 def initialise_tk():
     tk_root = Tk()
@@ -206,15 +221,20 @@ def load_data():
                     tile_indicators.append(new_pos)
 
 # scale = int(input('Pls enter the scale of the image to be loaded: '))
-# original_tilesize = int(input('Pls enter the tilesize of the tileset: '))
+# original_tilesize = 16
+original_tilesize = int(input('Pls enter the tilesize of the tileset: '))
 scale = 3
-original_tilesize = 16
 
 screen = pygame.display.set_mode((1000, 700))
 pygame.display.set_caption('Autotile Config Generator')
 
 filename = get_open_filename()
-images = load_images_from_spritesheet(filename)
+
+images = (
+    load_images_from_spritesheet(filename) or 
+    load_images_from_tilemap(filename)
+)
+
 original_image = create_image(images)
 
 scroll = [0,0]
